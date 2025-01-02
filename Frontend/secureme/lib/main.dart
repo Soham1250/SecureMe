@@ -100,17 +100,17 @@ class HomePage extends StatelessWidget {
                     _buildFeatureCard(
                       context,
                       'Link Analyzer',
-                      Icons.link_sharp,
+                      Icons.link,
                       () {
-                        // TODO: Implement secure notes
+                        // TODO: Implement link analyzer
                       },
                     ),
                     _buildFeatureCard(
                       context,
-                      'File Vault',
-                      Icons.mail_lock,
+                      'Secure Storage',
+                      Icons.security,
                       () {
-                        // TODO: Implement file vault
+                        // TODO: Implement secure storage
                       },
                     ),
                     _buildFeatureCard(
