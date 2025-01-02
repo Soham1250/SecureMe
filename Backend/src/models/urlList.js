@@ -25,6 +25,7 @@ const urlListSchema = new mongoose.Schema({
 // Create indexes for faster lookups
 urlListSchema.index({ url: 1, type: 1 });
 
-const UrlList = mongoose.model('UrlList', urlListSchema);
+// Explicitly set the collection name
+const UrlList = mongoose.model('UrlList', urlListSchema, 'urllists');
 
 module.exports = UrlList;
