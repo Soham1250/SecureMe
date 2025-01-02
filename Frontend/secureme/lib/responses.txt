@@ -1,0 +1,111 @@
+POST /api/url/scan
+Request:
+{
+    "url": "string" // URL to scan
+}
+
+Response (Success):
+{
+    "success": true,
+    "data": {
+        "url": "string",
+        "analysisId": "string",
+        "status": "completed",
+        "summary": {
+            "securityScore": number (0-100),
+            "verdict": "Safe" | "Unsafe",
+            "totalEngines": number,
+            "enginesReporting": {
+                "safe": number,
+                "malicious": number,
+                "suspicious": number,
+                "undetected": number
+            }
+        },
+        "issues": [
+            {
+                "name": "string", // Engine name
+                "category": "malicious" | "suspicious",
+                "result": "string" // Specific finding
+            }
+        ] | "No security issues found",
+        "lastAnalysisDate": "ISO date string"
+    }
+}
+
+Response (Error):
+{
+    "success": false,
+    "error": "string",
+    "details": "string"
+}
+
+POST /api/url/list
+Request:
+{
+    "url": "string",
+    "type": "whitelist" | "blacklist",
+    "reason": "string" (optional)
+}
+
+Response (Success):
+{
+    "success": true,
+    "data": {
+        "url": "string",
+        "type": "whitelist" | "blacklist",
+        "reason": "string",
+        "addedAt": "ISO date string"
+    }
+}
+
+Response (Error):
+{
+    "success": false,
+    "error": "string"
+}
+
+GET /api/url/list
+Query Parameters:
+- type: "whitelist" | "blacklist" (optional)
+
+Response (Success):
+{
+    "success": true,
+    "data": {
+        "urls": [
+            {
+                "url": "string",
+                "type": "whitelist" | "blacklist",
+                "reason": "string",
+                "addedAt": "ISO date string"
+            }
+        ]
+    }
+}
+
+Response (Error):
+{
+    "success": false,
+    "error": "string"
+}
+
+DELETE /api/url/list
+Request:
+{
+    "url": "string"
+}
+
+Response (Success):
+{
+    "success": true,
+    "data": {
+        "message": "URL removed successfully"
+    }
+}
+
+Response (Error):
+{
+    "success": false,
+    "error": "string"
+}

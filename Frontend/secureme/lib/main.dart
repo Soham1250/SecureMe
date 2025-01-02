@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/link_analyzer_screen.dart';
 
 void main() {
   runApp(const SecureMeApp());
@@ -102,7 +103,12 @@ class HomePage extends StatelessWidget {
                       'Link Analyzer',
                       Icons.link,
                       () {
-                        // TODO: Implement link analyzer
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LinkAnalyzerScreen(),
+                          ),
+                        );
                       },
                     ),
                     _buildFeatureCard(
