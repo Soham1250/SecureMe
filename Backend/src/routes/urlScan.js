@@ -12,8 +12,15 @@ const calculateSecurityMetrics = (stats) => {
     const unsafeEngines = stats.malicious + stats.suspicious;
     
     // New classification logic:
-    // Blacklist if score < 80 AND at least 5 engines flag it unsafe
-    const verdict = (securityScore < 80 && unsafeEngines >= 5) ? 'Unsafe' : 'Safe';
+    // URL is unsafe if ANY of these conditions are met:
+    // 1. Security score < 80 AND at least 2 malicious flags
+    // 2. At least 3 malicious/suspicious flags regardless of score
+    // 3. Security score < 60 (extremely low trust)
+    const verdict = (
+        (securityScore < 80 && stats.malicious >= 2) || // Condition 1
+        unsafeEngines >= 3 ||                          // Condition 2
+        securityScore < 60                             // Condition 3
+    ) ? 'Unsafe' : 'Safe';
     
     return { securityScore, verdict };
 };
