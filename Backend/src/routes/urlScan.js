@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
+const UrlList = require('../models/urlList');
 
 // Helper function to calculate security score and verdict
 const calculateSecurityMetrics = (stats) => {
@@ -42,6 +43,34 @@ const waitForAnalysis = async (apiKey, analysisId, maxAttempts = 10) => {
     throw new Error('Analysis timed out. Please try checking the status separately.');
 };
 
+// Helper function to check URL against whitelist/blacklist
+const checkUrlLists = async (url) => {
+    // Normalize URL for consistent checking
+    const normalizedUrl = new URL(url).hostname;
+    
+    // Check whitelist first
+    const whitelisted = await UrlList.findOne({ 
+        url: { $regex: new RegExp(normalizedUrl, 'i') }, 
+        type: 'whitelist' 
+    });
+    
+    if (whitelisted) {
+        return { listed: true, type: 'whitelist', reason: whitelisted.reason };
+    }
+
+    // Check blacklist
+    const blacklisted = await UrlList.findOne({ 
+        url: { $regex: new RegExp(normalizedUrl, 'i') }, 
+        type: 'blacklist' 
+    });
+    
+    if (blacklisted) {
+        return { listed: true, type: 'blacklist', reason: blacklisted.reason };
+    }
+
+    return { listed: false };
+};
+
 // Combined endpoint to scan URL and get results
 router.post('/scan', async (req, res) => {
     try {
@@ -49,6 +78,39 @@ router.post('/scan', async (req, res) => {
         
         if (!url) {
             return res.status(400).json({ error: 'URL is required' });
+        }
+
+        // Check against whitelist/blacklist first
+        const listCheck = await checkUrlLists(url);
+        
+        if (listCheck.listed) {
+            if (listCheck.type === 'whitelist') {
+                return res.json({
+                    success: true,
+                    data: {
+                        url: url,
+                        status: 'completed',
+                        summary: {
+                            securityScore: 100,
+                            verdict: 'Safe',
+                            reason: `Whitelisted: ${listCheck.reason || 'Trusted domain'}`
+                        }
+                    }
+                });
+            } else {
+                return res.json({
+                    success: true,
+                    data: {
+                        url: url,
+                        status: 'completed',
+                        summary: {
+                            securityScore: 0,
+                            verdict: 'Unsafe',
+                            reason: `Blacklisted: ${listCheck.reason || 'Known malicious domain'}`
+                        }
+                    }
+                });
+            }
         }
 
         const apiKey = process.env.API_KEY;
@@ -177,6 +239,98 @@ router.get('/status/:analysisId', async (req, res) => {
             success: false,
             error: 'Error checking analysis status',
             details: error.response?.data || error.message
+        });
+    }
+});
+
+// Endpoints to manage whitelist/blacklist
+router.post('/list', async (req, res) => {
+    try {
+        const { url, type, reason } = req.body;
+        
+        if (!url || !type || !['whitelist', 'blacklist'].includes(type)) {
+            return res.status(400).json({ 
+                error: 'URL and valid type (whitelist/blacklist) are required' 
+            });
+        }
+
+        // Normalize URL to store domain
+        const normalizedUrl = new URL(url).hostname;
+
+        // Create or update entry
+        const urlEntry = await UrlList.findOneAndUpdate(
+            { url: normalizedUrl, type },
+            { url: normalizedUrl, type, reason, addedAt: new Date() },
+            { upsert: true, new: true }
+        );
+
+        res.json({
+            success: true,
+            message: `URL ${normalizedUrl} added to ${type}`,
+            data: urlEntry
+        });
+
+    } catch (error) {
+        console.error('Error managing URL list:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error managing URL list',
+            details: error.message
+        });
+    }
+});
+
+router.get('/list/:type', async (req, res) => {
+    try {
+        const { type } = req.params;
+        
+        if (!['whitelist', 'blacklist'].includes(type)) {
+            return res.status(400).json({ error: 'Invalid list type' });
+        }
+
+        const urls = await UrlList.find({ type }).sort('-addedAt');
+        
+        res.json({
+            success: true,
+            data: urls
+        });
+
+    } catch (error) {
+        console.error('Error fetching URL list:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error fetching URL list',
+            details: error.message
+        });
+    }
+});
+
+router.delete('/list/:type/:id', async (req, res) => {
+    try {
+        const { type, id } = req.params;
+        
+        if (!['whitelist', 'blacklist'].includes(type)) {
+            return res.status(400).json({ error: 'Invalid list type' });
+        }
+
+        const result = await UrlList.findOneAndDelete({ _id: id, type });
+        
+        if (!result) {
+            return res.status(404).json({ error: 'URL entry not found' });
+        }
+
+        res.json({
+            success: true,
+            message: `URL removed from ${type}`,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('Error removing URL from list:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error removing URL from list',
+            details: error.message
         });
     }
 });
