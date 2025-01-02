@@ -99,8 +99,8 @@ class HomePage extends StatelessWidget {
                     ),
                     _buildFeatureCard(
                       context,
-                      'Secure Notes',
-                      Icons.note_alt,
+                      'Link Analyzer',
+                      Icons.link_sharp,
                       () {
                         // TODO: Implement secure notes
                       },
