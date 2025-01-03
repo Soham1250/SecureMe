@@ -19,23 +19,16 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/api/url', urlScanRouter);
 
-// MongoDB Connection with DNS resolution options
+// MongoDB Connection with simplified options
 mongoose.connect(process.env.MONGODB_URI, {
   serverSelectionTimeoutMS: 30000,
   socketTimeoutMS: 45000,
   connectTimeoutMS: 30000,
-  family: 4,  // Force IPv4
   useNewUrlParser: true,
-  useUnifiedTopology: true,
-  retryWrites: true,
-  w: 'majority',
-  dns: { 
-    recordQueryTimeout: 15000 // Increase DNS query timeout
-  }
+  useUnifiedTopology: true
 }).then(() => console.log('Connected to MongoDB'))
   .catch(err => {
     console.error('MongoDB connection error:', err);
-    // Log more details about the error
     if (err.name === 'MongoTimeoutError') {
       console.error('Connection timed out. Please check your MongoDB URI and network connection');
     }

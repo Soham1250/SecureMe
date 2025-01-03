@@ -8,18 +8,33 @@ class LinkAnalyzerService {
     try {
       final response = await http.post(
         Uri.parse(ApiConfig.scanUrl),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: json.encode({'url': url}),
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Request timed out. Please try again.');
+        },
       );
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        return LinkAnalysis.fromJson(jsonData['data']);
+        if (jsonData['success'] == true && jsonData['data'] != null) {
+          return LinkAnalysis.fromJson(jsonData['data']);
+        } else {
+          throw Exception(jsonData['error'] ?? 'Failed to analyze link');
+        }
       } else {
-        throw Exception('Failed to analyze link: ${response.body}');
+        throw Exception('Server error: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      throw Exception('Error analyzing link: $e');
+      if (e.toString().contains('SocketException')) {
+        throw Exception('Network error. Please check your internet connection.');
+      }
+      rethrow;
     }
   }
 }

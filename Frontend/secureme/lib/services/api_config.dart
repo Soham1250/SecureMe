@@ -1,5 +1,5 @@
 class ApiConfig {
-  // Replace this with your Render URL once deployed
+  // Using HTTPS for secure connection
   static const String baseUrl = 'https://secureme-vj4u.onrender.com';
 
   // API endpoints
