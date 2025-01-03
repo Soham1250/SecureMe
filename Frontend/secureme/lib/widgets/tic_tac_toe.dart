@@ -298,57 +298,55 @@ class _TicTacToeState extends State<TicTacToe> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (winner.isNotEmpty) ...[
-          Text(
-            winner == 'Draw' ? "It's a Draw!" : '$winner Wins!',
-            style: TextStyle(
-              color: winner == 'Player'
-                  ? Colors.blue
-                  : winner == 'Computer'
-                      ? Colors.orange
-                      : Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () => setState(initializeGame),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 16,
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width <= 600;
+    final boardSize = isSmallScreen ? size.width * 0.9 : 400.0;
+    final statsWidth = isSmallScreen ? size.width * 0.9 : 300.0;
+
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: statsWidth,
+              margin: EdgeInsets.symmetric(vertical: size.height * 0.02),
+              padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white24),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Game Stats',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isSmallScreen ? 20 : 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  Text(
+                    'Wins: $playerWins | Losses: $computerWins | Draws: $draws',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isSmallScreen ? 14 : 16,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: const Text(
-              'Play Again',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 2,
-            ),
-          ),
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Stack(
-              children: [
-                CustomPaint(
-                  size: Size.infinite,
-                  painter: GridPainter(),
-                ),
-                GridView.builder(
+            Container(
+              width: boardSize,
+              height: boardSize,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white24),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: CustomPaint(
+                painter: GridPainter(),
+                child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                   ),
@@ -373,45 +371,55 @@ class _TicTacToeState extends State<TicTacToe> with TickerProviderStateMixin {
                     );
                   },
                 ),
-                if (winningLine != null)
-                  AnimatedBuilder(
-                    animation: lineController!,
-                    builder: (context, child) {
-                      return CustomPaint(
-                        size: Size.infinite,
-                        painter: WinLinePainter(
-                          winningLine!,
-                          lineController!.value,
-                        ),
-                      );
-                    },
-                  ),
-              ],
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'Wins: $playerWins  Draws: $draws  Losses: $computerWins',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
               ),
             ),
-          ),
+            SizedBox(height: size.height * 0.02),
+            if (winner.isNotEmpty)
+              Container(
+                width: statsWidth,
+                margin: EdgeInsets.only(bottom: size.height * 0.02),
+                child: Column(
+                  children: [
+                    Text(
+                      winner == 'Draw' ? "It's a Draw!" : '$winner Wins!',
+                      style: TextStyle(
+                        color: winner == 'Player'
+                            ? Colors.blue
+                            : winner == 'Computer'
+                                ? Colors.orange
+                                : Colors.white,
+                        fontSize: isSmallScreen ? 18 : 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: size.height * 0.02),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => setState(initializeGame),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Play Again',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: isSmallScreen ? 16 : 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

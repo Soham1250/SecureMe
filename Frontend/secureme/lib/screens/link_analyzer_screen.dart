@@ -100,56 +100,94 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final padding = size.width > 600 ? 32.0 : 16.0;
+    final maxWidth = size.width > 1200 ? 1000.0 : size.width * 0.9;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              const Text(
-                'Link Analyzer',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _urlController,
-                decoration: InputDecoration(
-                  hintText: 'Enter link here',
-                  filled: true,
-                  fillColor: Colors.black,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(padding),
+              child: Column(
+                children: [
+                  Text(
+                    'Link Analyzer',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: size.width > 600 ? 32 : 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                  SizedBox(height: size.height * 0.03),
+                  Container(
+                    constraints: BoxConstraints(maxWidth: 600),
+                    child: TextField(
+                      controller: _urlController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter link here',
+                        hintStyle: TextStyle(color: Colors.white70),
+                        filled: true,
+                        fillColor: Colors.black,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.white54),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.blue),
+                        ),
+                      ),
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.02),
+                  SizedBox(
+                    width: size.width > 600 ? 300 : double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _analyzeLink,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        _isLoading ? 'Analyzing...' : 'Analyze',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: size.width > 600 ? 18 : 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _analyzeLink,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.blue,
-                ),
-                child: Text(
-                  _isLoading ? 'Analyzing...' : 'Analyze',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: _showGame
-                    ? TicTacToe(
-                        onGameComplete: _onGameComplete,
-                        playerFirst: _playerFirst,
-                      )
-                    : _buildAnalysisResult(),
-              ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: _showGame
+                  ? TicTacToe(
+                      onGameComplete: _onGameComplete,
+                      playerFirst: _playerFirst,
+                    )
+                  : SingleChildScrollView(
+                      padding: EdgeInsets.all(padding),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxWidth),
+                          child: _buildAnalysisResult(),
+                        ),
+                      ),
+                    ),
+            ),
+          ],
         ),
       ),
     );
@@ -157,22 +195,28 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
 
   Widget _buildAnalysisResult() {
     final analysis = _analysis;
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width <= 600;
+
     if (analysis == null) {
-      return const Center(
+      return Center(
         child: Text(
           'Enter a URL to analyze',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: isSmallScreen ? 16 : 20,
+          ),
         ),
       );
     }
 
     return SingleChildScrollView(
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.8,
-        padding: const EdgeInsets.all(16),
+        width: double.infinity,
+        padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white),
-          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white24),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -181,80 +225,103 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
               'Verdict: ${analysis.summary.verdict}',
               style: TextStyle(
                 color: _getVerdictColor(analysis.summary.verdict),
-                fontSize: 18,
+                fontSize: isSmallScreen ? 20 : 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: size.height * 0.02),
             Text(
               'Security Score: ${analysis.summary.securityScore}',
               style: TextStyle(
                 color: _getScoreColor(analysis.summary.securityScore),
-                fontSize: 16,
+                fontSize: isSmallScreen ? 16 : 20,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: size.height * 0.03),
             if (analysis.issues?.isNotEmpty ?? false) ...[
-              const Text(
+              Text(
                 'Security Issues:',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: isSmallScreen ? 18 : 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10),
-              Table(
-                border: TableBorder.all(
-                  color: Colors.white,
-                  width: 1,
+              SizedBox(height: size.height * 0.02),
+              Container(
+                width: double.infinity,
+                constraints: BoxConstraints(
+                  maxWidth: isSmallScreen ? double.infinity : 800,
                 ),
-                children: [
-                  const TableRow(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Table(
+                    defaultColumnWidth: FixedColumnWidth(
+                      isSmallScreen ? size.width * 0.4 : 300,
+                    ),
+                    border: TableBorder.all(
+                      color: Colors.white24,
+                      width: 1,
+                    ),
                     children: [
-                      Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          'Engine',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      TableRow(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
                         ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          'Finding',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+                            child: Text(
+                              'Engine',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: isSmallScreen ? 14 : 16,
+                              ),
+                            ),
                           ),
+                          Padding(
+                            padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+                            child: Text(
+                              'Finding',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: isSmallScreen ? 14 : 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      ...(analysis.issues ?? []).map(
+                        (issue) => TableRow(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+                              child: Text(
+                                issue.name,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isSmallScreen ? 12 : 14,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+                              child: Text(
+                                issue.result,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isSmallScreen ? 12 : 14,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  ...(analysis.issues ?? []).map(
-                    (issue) => TableRow(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            issue.name,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            issue.result,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ],
