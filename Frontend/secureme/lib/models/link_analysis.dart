@@ -112,9 +112,9 @@ class SecurityIssue {
   factory SecurityIssue.fromJson(Map<String, dynamic> json) {
     try {
       return SecurityIssue(
-        name: json['name']?.toString() ?? 'Unknown Engine',
+        name: json['engine']?.toString() ?? 'Unknown Engine',
         category: json['category']?.toString() ?? 'unknown',
-        result: json['result']?.toString() ?? 'No details available',
+        result: json['finding']?.toString() ?? 'No details available',
       );
     } catch (e) {
       throw Exception('Error parsing SecurityIssue: ${e.toString()}');

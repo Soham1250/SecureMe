@@ -4,21 +4,32 @@ const urlListSchema = new mongoose.Schema({
     url: {
         type: String,
         required: true,
-        unique: true,
-        trim: true
+        unique: true
     },
     type: {
         type: String,
-        enum: ['whitelist', 'blacklist'],
-        required: true
+        required: true,
+        enum: ['safe', 'mildly_unsafe', 'unsafe'],
+        default: 'safe'
     },
-    addedAt: {
-        type: Date,
-        default: Date.now
+    securityScore: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 100
     },
     reason: {
         type: String,
-        trim: true
+        required: true
+    },
+    engineReports: [{
+        engine: String,
+        category: String,
+        finding: String
+    }],
+    addedAt: {
+        type: Date,
+        default: Date.now
     }
 });
 

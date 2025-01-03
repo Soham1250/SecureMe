@@ -3,50 +3,92 @@ const axios = require('axios');
 const router = express.Router();
 const UrlList = require('../models/urlList');
 
-// Helper function to calculate security score and verdict
+// Helper function to calculate security metrics
 const calculateSecurityMetrics = (stats) => {
-    const totalScanned = stats.harmless + stats.malicious + stats.suspicious + stats.undetected;
-    const securityScore = Math.round((stats.harmless / totalScanned) * 100);
-    
-    // Calculate total unsafe engines
+    const totalEngines = stats.harmless + stats.malicious + stats.suspicious + stats.undetected;
     const unsafeEngines = stats.malicious + stats.suspicious;
     
-    // New classification logic:
-    // URL is unsafe if ANY of these conditions are met:
-    // 1. Security score < 80 AND at least 2 malicious flags
-    // 2. At least 3 malicious/suspicious flags regardless of score
-    // 3. Security score < 60 (extremely low trust)
-    const verdict = (
-        (securityScore < 80 && stats.malicious >= 2) || // Condition 1
-        unsafeEngines >= 3 ||                          // Condition 2
-        securityScore < 60                             // Condition 3
-    ) ? 'Unsafe' : 'Safe';
+    // Calculate base score (100 - percentage of unsafe engines)
+    const baseScore = 100 - ((unsafeEngines / totalEngines) * 100);
     
-    return { securityScore, verdict };
+    // Determine verdict and adjust score based on number of unsafe engines
+    let verdict, securityScore;
+    
+    if (unsafeEngines === 0) {
+        verdict = 'safe';
+        securityScore = Math.max(90, baseScore); // Minimum 90 for safe URLs
+    } else if (unsafeEngines <= 5) {
+        verdict = 'mildly_unsafe';
+        securityScore = Math.min(89, Math.max(80, baseScore)); // Between 80-89
+    } else {
+        verdict = 'unsafe';
+        securityScore = Math.min(69, baseScore); // Maximum 69 for unsafe URLs
+    }
+
+    return { 
+        securityScore: Math.round(securityScore), 
+        verdict,
+        unsafeEngineCount: unsafeEngines
+    };
+};
+
+// Helper function to format stored engine reports
+const formatEngineReports = (reports) => {
+    if (!reports || !Array.isArray(reports) || reports.length === 0) {
+        return 'No security issues found';
+    }
+    return reports;
 };
 
 // Helper function to wait for analysis completion
-const waitForAnalysis = async (apiKey, analysisId, maxAttempts = 10) => {
+const waitForAnalysis = async (apiKey, analysisId) => {
     const baseUrl = 'https://www.virustotal.com/api/v3';
+    const maxAttempts = 10;
     let attempts = 0;
 
     while (attempts < maxAttempts) {
-        const response = await axios.get(`${baseUrl}/analyses/${analysisId}`, {
-            headers: { 'x-apikey': apiKey }
-        });
+        try {
+            // First get the analysis status
+            const analysisResponse = await axios.get(`${baseUrl}/analyses/${analysisId}`, {
+                headers: {
+                    'x-apikey': apiKey
+                }
+            });
 
-        const status = response.data.data.attributes.status;
-        
-        if (status === 'completed') {
-            return response.data;
+            console.log('Analysis Response:', JSON.stringify(analysisResponse.data, null, 2));
+
+            const status = analysisResponse.data.data.attributes.status;
+            
+            if (status === 'completed') {
+                // Get the URL ID from the analysis
+                const urlId = analysisResponse.data.meta?.url_info?.id;
+                
+                if (!urlId) {
+                    console.log('No URL ID found in analysis response, using analysis results');
+                    return analysisResponse.data;
+                }
+
+                // Get detailed URL report
+                const urlReport = await axios.get(`${baseUrl}/urls/${urlId}`, {
+                    headers: {
+                        'x-apikey': apiKey
+                    }
+                });
+                
+                console.log('URL Report:', JSON.stringify(urlReport.data, null, 2));
+                return urlReport.data;
+            }
+
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (error) {
+            console.error('Error in waitForAnalysis:', error.response?.data || error);
+            attempts++;
+            await new Promise(resolve => setTimeout(resolve, 2000));
         }
-
-        // Wait for 2 seconds before next attempt
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        attempts++;
     }
 
-    throw new Error('Analysis timed out. Please try checking the status separately.');
+    throw new Error('Analysis timed out or failed');
 };
 
 // Helper function to check URL against whitelist/blacklist
@@ -84,7 +126,7 @@ const addUrlToList = async (url, verdict, stats) => {
         let type, reason;
         const unsafeEngines = stats.malicious + stats.suspicious;
 
-        if (verdict === 'Safe') {
+        if (verdict === 'safe') {
             type = 'whitelist';
             reason = `The link is flagged safe based on research and analysis done by ${stats.harmless} engines.`;
         } else {
@@ -132,135 +174,142 @@ const getAnalysisResults = async (apiKey, analysisId) => {
 
 // Helper function to process and return results
 const processAndReturnResults = async (analysisData, url, analysisId, res) => {
-    const stats = analysisData.data.attributes.stats;
-    const results = analysisData.data.attributes.results;
+    try {
+        // Log the raw data we're working with
+        console.log('Processing Analysis Data:', JSON.stringify(analysisData, null, 2));
 
-    // Calculate security metrics
-    const { securityScore, verdict } = calculateSecurityMetrics(stats);
+        // Get the last analysis results
+        const lastAnalysisResults = analysisData.data.attributes.last_analysis_results;
+        const lastAnalysisStats = analysisData.data.attributes.last_analysis_stats;
 
-    // Add URL to appropriate list based on verdict
-    await addUrlToList(url, verdict, stats);
+        if (!lastAnalysisResults) {
+            console.error('No analysis results found in response');
+            throw new Error('Invalid analysis data received');
+        }
 
-    // Get engines that found issues
-    const enginesWithIssues = Object.entries(results)
-        .filter(([_, result]) => result.category === 'malicious' || result.category === 'suspicious')
-        .map(([name, result]) => ({
-            name,
-            category: result.category,
-            result: result.result
-        }));
+        // Calculate security metrics
+        const { securityScore, verdict, unsafeEngineCount } = calculateSecurityMetrics(lastAnalysisStats);
 
-    // Return complete analysis
-    res.json({
-        success: true,
-        data: {
-            url: url,
-            analysisId: analysisId,
-            status: 'completed',
-            summary: {
-                securityScore,
-                verdict,
-                totalEngines: Object.keys(results).length,
-                enginesReporting: {
-                    safe: stats.harmless,
-                    malicious: stats.malicious,
-                    suspicious: stats.suspicious,
-                    undetected: stats.undetected
+        // Get engines that found issues
+        const enginesWithIssues = [];
+        
+        // Process each result
+        for (const [engineName, engineResult] of Object.entries(lastAnalysisResults)) {
+            // Log each engine result for debugging
+            console.log('Processing engine result:', { engineName, engineResult });
+
+            if (engineResult.category === 'malicious' || engineResult.category === 'suspicious') {
+                const finding = {
+                    engine: engineName,
+                    category: engineResult.category,
+                    finding: engineResult.result || engineResult.method || 'suspicious activity'
+                };
+                console.log('Adding engine finding:', finding);
+                enginesWithIssues.push(finding);
+            }
+        }
+
+        // Generate reason based on verdict
+        let reason;
+        if (verdict === 'safe') {
+            reason = 'The URL is safe based on analysis from all security engines.';
+        } else if (verdict === 'mildly_unsafe') {
+            reason = `The URL has been flagged by ${unsafeEngineCount} security engines as potentially unsafe.`;
+        } else {
+            reason = `The URL has been flagged by ${unsafeEngineCount} security engines as unsafe.`;
+        }
+
+        // Store URL with new classification
+        const storedUrl = await UrlList.findOneAndUpdate(
+            { url: url },
+            {
+                $set: {
+                    url,
+                    type: verdict,
+                    securityScore,
+                    reason,
+                    engineReports: enginesWithIssues,
+                    addedAt: new Date()
                 }
             },
-            issues: enginesWithIssues.length > 0 ? enginesWithIssues : 'No security issues found',
-            lastAnalysisDate: new Date(analysisData.data.attributes.date * 1000).toISOString()
-        }
-    });
+            { upsert: true, new: true }
+        );
+
+        // Return complete analysis
+        const response = {
+            success: true,
+            data: {
+                url: url,
+                analysisId: analysisId,
+                status: 'completed',
+                summary: {
+                    securityScore,
+                    verdict,
+                    totalEngines: Object.keys(lastAnalysisResults).length,
+                    unsafeEngineCount,
+                    enginesReporting: {
+                        safe: lastAnalysisStats.harmless,
+                        malicious: lastAnalysisStats.malicious,
+                        suspicious: lastAnalysisStats.suspicious,
+                        undetected: lastAnalysisStats.undetected
+                    },
+                    reason
+                },
+                issues: enginesWithIssues
+            }
+        };
+
+        console.log('Final Response:', JSON.stringify(response, null, 2));
+        res.json(response);
+    } catch (error) {
+        console.error('Error processing results:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error processing scan results',
+            details: error.message
+        });
+    }
 };
 
 // Combined endpoint to scan URL and get results
 router.post('/scan', async (req, res) => {
     try {
         const { url } = req.body;
-        
+        const apiKey = process.env.VIRUSTOTAL_API_KEY;
+
         if (!url) {
-            return res.status(400).json({ error: 'URL is required' });
+            return res.status(400).json({ success: false, error: 'URL is required' });
         }
 
-        // Check against whitelist/blacklist first
-        const listCheck = await checkUrlLists(url);
-        
-        if (listCheck.listed) {
-            if (listCheck.type === 'whitelist') {
-                return res.json({
-                    success: true,
-                    data: {
-                        url: url,
-                        status: 'completed',
-                        summary: {
-                            securityScore: 100,
-                            verdict: 'Safe',
-                            reason: listCheck.reason
-                        }
-                    }
-                });
-            } else {
-                return res.json({
-                    success: true,
-                    data: {
-                        url: url,
-                        status: 'completed',
-                        summary: {
-                            securityScore: 0,
-                            verdict: 'Unsafe',
-                            reason: listCheck.reason
-                        }
-                    }
-                });
-            }
-        }
-
-        const apiKey = process.env.API_KEY;
-        const baseUrl = 'https://www.virustotal.com/api/v3';
-
-        // First, submit URL for analysis
-        const submitResponse = await axios.post(`${baseUrl}/urls`, 
-            `url=${encodeURIComponent(url)}`,
-            {
-                headers: {
+        // First, submit URL for scanning
+        const scanResponse = await axios.post('https://www.virustotal.com/api/v3/urls', 
+            new URLSearchParams({ url }).toString(),
+            { 
+                headers: { 
                     'x-apikey': apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                } 
             }
         );
 
-        // Extract analysis ID and wait for completion
-        const analysisId = submitResponse.data.data.id;
-        
-        try {
-            // Try to get analysis results
-            const analysisData = await waitForAnalysis(apiKey, analysisId);
-            await processAndReturnResults(analysisData, url, analysisId, res);
-        } catch (timeoutError) {
-            // If first attempt times out, wait 1 second and try status endpoint once
-            console.log('Initial analysis timed out, trying status endpoint after delay...');
-            await delay(1000);
-            
-            try {
-                const analysisData = await getAnalysisResults(apiKey, analysisId);
-                await processAndReturnResults(analysisData, url, analysisId, res);
-            } catch (statusError) {
-                console.error('Error getting status:', statusError);
-                res.status(500).json({
-                    success: false,
-                    error: 'Analysis is taking longer than expected',
-                    details: 'Please try scanning the URL again in a few moments'
-                });
-            }
-        }
+        console.log('Scan Response:', JSON.stringify(scanResponse.data, null, 2));
+
+        // Get analysis ID from the response
+        const analysisId = scanResponse.data.data.id;
+
+        // Wait for analysis to complete and get results
+        const analysisData = await waitForAnalysis(apiKey, analysisId);
+        console.log('Analysis data:', JSON.stringify(analysisData, null, 2));
+
+        // Process and return results
+        await processAndReturnResults(analysisData, url, analysisId, res);
 
     } catch (error) {
-        console.error('Error scanning URL:', error.response?.data || error.message);
+        console.error('Error scanning URL:', error.response?.data || error);
         res.status(500).json({
             success: false,
             error: 'Error scanning URL',
-            details: error.response?.data || error.message
+            details: error.response?.data?.error?.message || error.message
         });
     }
 });
@@ -269,23 +318,38 @@ router.post('/scan', async (req, res) => {
 router.get('/status/:analysisId', async (req, res) => {
     try {
         const { analysisId } = req.params;
-        const apiKey = process.env.API_KEY;
+        const apiKey = process.env.VIRUSTOTAL_API_KEY;
         
         const analysisData = await waitForAnalysis(apiKey, analysisId, 1);
         const stats = analysisData.data.attributes.stats;
         const results = analysisData.data.attributes.results;
 
         // Calculate security metrics
-        const { securityScore, verdict } = calculateSecurityMetrics(stats);
+        const { securityScore, verdict, unsafeEngineCount } = calculateSecurityMetrics(stats);
 
         // Get engines that found issues
-        const enginesWithIssues = Object.entries(results)
-            .filter(([_, result]) => result.category === 'malicious' || result.category === 'suspicious')
-            .map(([name, result]) => ({
-                name,
-                category: result.category,
-                result: result.result
-            }));
+        const enginesWithIssues = [];
+        
+        // Process each result
+        for (const [engineName, engineResult] of Object.entries(results)) {
+            if (engineResult.category === 'malicious' || engineResult.category === 'suspicious') {
+                enginesWithIssues.push({
+                    engine: engineName,
+                    category: engineResult.category,
+                    finding: engineResult.result || 'suspicious activity'
+                });
+            }
+        }
+
+        // Generate reason based on verdict
+        let reason;
+        if (verdict === 'safe') {
+            reason = 'The URL is safe based on analysis from all security engines.';
+        } else if (verdict === 'mildly_unsafe') {
+            reason = `The URL has been flagged by ${unsafeEngineCount} security engines as potentially unsafe.`;
+        } else {
+            reason = `The URL has been flagged by ${unsafeEngineCount} security engines as unsafe.`;
+        }
 
         res.json({
             success: true,
@@ -296,15 +360,16 @@ router.get('/status/:analysisId', async (req, res) => {
                     securityScore,
                     verdict,
                     totalEngines: Object.keys(results).length,
+                    unsafeEngineCount,
                     enginesReporting: {
                         safe: stats.harmless,
                         malicious: stats.malicious,
                         suspicious: stats.suspicious,
                         undetected: stats.undetected
-                    }
+                    },
+                    reason
                 },
-                issues: enginesWithIssues.length > 0 ? enginesWithIssues : 'No security issues found',
-                lastAnalysisDate: new Date(analysisData.data.attributes.date * 1000).toISOString()
+                issues: enginesWithIssues.length > 0 ? enginesWithIssues : 'No security issues found'
             }
         });
 

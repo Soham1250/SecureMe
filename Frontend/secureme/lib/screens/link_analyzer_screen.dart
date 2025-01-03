@@ -17,10 +17,16 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
   String? _error;
 
   Future<void> _analyzeLink() async {
-    final link = _linkController.text.trim();
+    var link = _linkController.text.trim();
     if (link.isEmpty) {
       setState(() => _error = 'Please enter a link');
       return;
+    }
+
+    // Add https:// if no protocol is specified
+    if (!link.startsWith('http://') && !link.startsWith('https://')) {
+      link = 'https://$link';
+      _linkController.text = link;  // Update the text field to show the modified URL
     }
 
     setState(() {
@@ -90,72 +96,86 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
     return Expanded(
       child: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(
-                  'Verdict: ${analysis.summary.verdict}',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(width: 16),
-                SizedBox(
-                  height: 40,
-                  width: 40,
-                  child: CircularProgressIndicator(
-                    value: analysis.summary.securityScore / 100,
-                    color: color,
+            // Centered verdict section
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    'Verdict: ${analysis.summary.verdict}',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '${analysis.summary.securityScore}/100',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: color,
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: CircularProgressIndicator(
+                          value: analysis.summary.securityScore / 100,
+                          color: color,
+                        ),
                       ),
-                ),
-              ],
+                      const SizedBox(width: 8),
+                      Text(
+                        '${analysis.summary.securityScore}/100',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: color,
+                            ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             if (!isSafe && analysis.issues != null) ...[
               Text(
                 'Security Issues:',
                 style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Engine')),
-                    DataColumn(label: Text('Category')),
-                    DataColumn(label: Text('Finding')),
-                  ],
-                  rows: analysis.issues!.map((issue) {
-                    final ismalicious = issue.category == 'malicious';
-                    final rowColor = ismalicious
-                        ? Colors.red.withOpacity(0.1)
-                        : Colors.orange.withOpacity(0.1);
-                    final textColor = ismalicious ? Colors.red : Colors.orange;
-
-                    return DataRow(
-                      color: MaterialStateProperty.all(rowColor),
-                      cells: [
-                        DataCell(Text(issue.name)),
-                        DataCell(Text(
-                          issue.category,
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )),
-                        DataCell(Text(issue.result)),
+              // Centered table with 80% width
+              Center(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      columns: const [
+                        DataColumn(label: Text('Engine')),
+                        DataColumn(label: Text('Category')),
+                        DataColumn(label: Text('Finding')),
                       ],
-                    );
-                  }).toList(),
+                      rows: analysis.issues!.map((issue) {
+                        final ismalicious = issue.category == 'malicious';
+                        final rowColor = ismalicious
+                            ? Colors.red.withOpacity(0.1)
+                            : Colors.orange.withOpacity(0.1);
+                        final textColor = ismalicious ? Colors.red : Colors.orange;
+
+                        return DataRow(
+                          color: MaterialStateProperty.all(rowColor),
+                          cells: [
+                            DataCell(Text(issue.name)),
+                            DataCell(Text(
+                              issue.category,
+                              style: TextStyle(
+                                color: textColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )),
+                            DataCell(Text(issue.result)),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ),
               ),
             ],
