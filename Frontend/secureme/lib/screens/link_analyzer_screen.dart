@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/link_analysis.dart';
 import '../services/link_analyzer_service.dart';
+import '../models/link_analysis.dart';
+import '../widgets/tic_tac_toe.dart';
 
 class LinkAnalyzerScreen extends StatefulWidget {
   const LinkAnalyzerScreen({super.key});
@@ -10,173 +11,250 @@ class LinkAnalyzerScreen extends StatefulWidget {
 }
 
 class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
-  final _linkController = TextEditingController();
-  final _service = LinkAnalyzerService();
+  final _urlController = TextEditingController();
+  LinkAnalysis? _analysis;
   bool _isLoading = false;
-  LinkAnalysis? _result;
-  String? _error;
+  bool _showGame = false;
+  bool _playerFirst = true;
+  LinkAnalysis? _pendingAnalysis;
 
-  Future<void> _analyzeLink() async {
-    var link = _linkController.text.trim();
-    if (link.isEmpty) {
-      setState(() => _error = 'Please enter a link');
-      return;
-    }
+  void _analyzeLink() async {
+    if (_urlController.text.isEmpty) return;
 
-    // Add https:// if no protocol is specified
-    if (!link.startsWith('http://') && !link.startsWith('https://')) {
-      link = 'https://$link';
-      _linkController.text = link;  // Update the text field to show the modified URL
+    String url = _urlController.text;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://$url';
+      _urlController.text = url;
     }
 
     setState(() {
       _isLoading = true;
-      _error = null;
-      _result = null;
+      _showGame = true;
+      _analysis = null;
     });
 
     try {
-      final result = await _service.analyzeLink(link);
-      setState(() {
-        _result = result;
-        _isLoading = false;
-      });
+      final analysis = await LinkAnalyzerService().analyzeLink(url);
+
+      if (_showGame) {
+        setState(() => _pendingAnalysis = analysis);
+        _showAnalysisDialog();
+      } else {
+        setState(() {
+          _analysis = analysis;
+          _isLoading = false;
+          _showGame = false;
+        });
+      }
     } catch (e) {
       setState(() {
-        _error = e.toString();
         _isLoading = false;
+        _showGame = false;
       });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  void _showAnalysisDialog() {
+    if (_pendingAnalysis == null || !mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Analysis Complete'),
+        content: const Text(
+            'Would you like to see the analysis now or finish your game?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _analysis = _pendingAnalysis;
+                _showGame = false;
+                _isLoading = false;
+                _pendingAnalysis = null;
+                _playerFirst = !_playerFirst;
+              });
+            },
+            child: const Text('Show Analysis'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Finish Game'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onGameComplete(bool gameEnded) {
+    if (gameEnded && _pendingAnalysis != null && mounted) {
+      _showAnalysisDialog();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Link Analyzer'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _linkController,
-              decoration: InputDecoration(
-                hintText: 'Enter link here',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              const Text(
+                'Link Analyzer',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
-                errorText: _error,
               ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _analyzeLink,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Analyze'),
-            ),
-            const SizedBox(height: 24),
-            if (_result != null) _buildResult(_result!),
-          ],
+              const SizedBox(height: 20),
+              TextField(
+                controller: _urlController,
+                decoration: InputDecoration(
+                  hintText: 'Enter link here',
+                  filled: true,
+                  fillColor: Colors.black,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _analyzeLink,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: Colors.blue,
+                ),
+                child: Text(
+                  _isLoading ? 'Analyzing...' : 'Analyze',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: _showGame
+                    ? TicTacToe(
+                        onGameComplete: _onGameComplete,
+                        playerFirst: _playerFirst,
+                      )
+                    : _buildAnalysisResult(),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildResult(LinkAnalysis analysis) {
-    final isSafe = analysis.summary.verdict.toLowerCase() == 'safe';
-    final color = isSafe ? Colors.green : Colors.red;
+  Widget _buildAnalysisResult() {
+    final analysis = _analysis;
+    if (analysis == null) {
+      return const Center(
+        child: Text(
+          'Enter a URL to analyze',
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
 
-    return Expanded(
-      child: SingleChildScrollView(
+    return SingleChildScrollView(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.8,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white),
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Centered verdict section
-            Center(
-              child: Column(
+            Text(
+              'Verdict: ${analysis.summary.verdict}',
+              style: TextStyle(
+                color: _getVerdictColor(analysis.summary.verdict),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Security Score: ${analysis.summary.securityScore}',
+              style: TextStyle(
+                color: _getScoreColor(analysis.summary.securityScore),
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 20),
+            if (analysis.issues?.isNotEmpty ?? false) ...[
+              const Text(
+                'Security Issues:',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Table(
+                border: TableBorder.all(
+                  color: Colors.white,
+                  width: 1,
+                ),
                 children: [
-                  Text(
-                    'Verdict: ${analysis.summary.verdict}',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  const TableRow(
                     children: [
-                      SizedBox(
-                        height: 40,
-                        width: 40,
-                        child: CircularProgressIndicator(
-                          value: analysis.summary.securityScore / 100,
-                          color: color,
+                      Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          'Engine',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${analysis.summary.securityScore}/100',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: color,
-                            ),
+                      Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          'Finding',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            if (!isSafe && analysis.issues != null) ...[
-              Text(
-                'Security Issues:',
-                style: Theme.of(context).textTheme.titleLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              // Centered table with 80% width
-              Center(
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('Engine')),
-                        DataColumn(label: Text('Category')),
-                        DataColumn(label: Text('Finding')),
+                  ...(analysis.issues ?? []).map(
+                    (issue) => TableRow(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            issue.name,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            issue.result,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
                       ],
-                      rows: analysis.issues!.map((issue) {
-                        final ismalicious = issue.category == 'malicious';
-                        final rowColor = ismalicious
-                            ? Colors.red.withOpacity(0.1)
-                            : Colors.orange.withOpacity(0.1);
-                        final textColor = ismalicious ? Colors.red : Colors.orange;
-
-                        return DataRow(
-                          color: MaterialStateProperty.all(rowColor),
-                          cells: [
-                            DataCell(Text(issue.name)),
-                            DataCell(Text(
-                              issue.category,
-                              style: TextStyle(
-                                color: textColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )),
-                            DataCell(Text(issue.result)),
-                          ],
-                        );
-                      }).toList(),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ],
@@ -185,9 +263,28 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
     );
   }
 
+  Color _getVerdictColor(String verdict) {
+    switch (verdict.toLowerCase()) {
+      case 'safe':
+        return Colors.green;
+      case 'suspicious':
+        return Colors.orange;
+      case 'malicious':
+        return Colors.red;
+      default:
+        return Colors.white;
+    }
+  }
+
+  Color _getScoreColor(int score) {
+    if (score >= 80) return Colors.green;
+    if (score >= 60) return Colors.orange;
+    return Colors.red;
+  }
+
   @override
   void dispose() {
-    _linkController.dispose();
+    _urlController.dispose();
     super.dispose();
   }
 }
