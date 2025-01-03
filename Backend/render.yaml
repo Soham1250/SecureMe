@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: secureme-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: VIRUSTOTAL_API_KEY
+        sync: false
+    healthCheckPath: /health
