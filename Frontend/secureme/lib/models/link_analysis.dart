@@ -16,8 +16,6 @@ class LinkAnalysis {
   });
 
   factory LinkAnalysis.fromJson(Map<String, dynamic> json) {
-    if (json == null) throw Exception('Received null JSON data');
-    
     try {
       return LinkAnalysis(
         url: json['url']?.toString() ?? '',

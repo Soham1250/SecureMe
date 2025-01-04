@@ -1,7 +1,8 @@
 import 'package:flutter/services.dart';
 
 class LinkAnalysisService {
-  static const MethodChannel _channel = MethodChannel('com.example.secureme/link_analysis');
+  static const MethodChannel _channel =
+      MethodChannel('com.example.secureme/link_analysis');
   static final LinkAnalysisService _instance = LinkAnalysisService._internal();
 
   factory LinkAnalysisService() => _instance;
@@ -13,16 +14,16 @@ class LinkAnalysisService {
   Future<void> startService() async {
     try {
       await _channel.invokeMethod('startService');
-    } on PlatformException catch (e) {
-      print('Failed to start service: ${e.message}');
+    } on PlatformException {
+      // print('Failed to start service: ${e.message}');
     }
   }
 
   Future<void> stopService() async {
     try {
       await _channel.invokeMethod('stopService');
-    } on PlatformException catch (e) {
-      print('Failed to stop service: ${e.message}');
+    } on PlatformException {
+      // print('Failed to stop service: ${e.message}');
     }
   }
 
