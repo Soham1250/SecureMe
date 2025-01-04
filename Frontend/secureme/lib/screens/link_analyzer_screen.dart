@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/link_analyzer_service.dart';
+import '../services/link_analysis_service.dart';
 import '../models/link_analysis.dart';
 import '../widgets/tic_tac_toe.dart';
 
@@ -11,45 +12,50 @@ class LinkAnalyzerScreen extends StatefulWidget {
 }
 
 class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
-  final _urlController = TextEditingController();
-  LinkAnalysis? _analysis;
-  bool _isLoading = false;
-  bool _showGame = false;
-  bool _playerFirst = true;
-  LinkAnalysis? _pendingAnalysis;
+  final urlController = TextEditingController();
+  LinkAnalysis? analysis;
+  bool isLoading = false;
+  bool showGame = false;
+  bool playerFirst = true;
+  LinkAnalysis? pendingAnalysis;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   void _analyzeLink() async {
-    if (_urlController.text.isEmpty) return;
+    if (urlController.text.isEmpty) return;
 
-    String url = _urlController.text;
+    String url = urlController.text;
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://$url';
-      _urlController.text = url;
+      urlController.text = url;
     }
 
     setState(() {
-      _isLoading = true;
-      _showGame = true;
-      _analysis = null;
+      isLoading = true;
+      showGame = true;
+      analysis = null;
     });
 
     try {
       final analysis = await LinkAnalyzerService().analyzeLink(url);
 
-      if (_showGame) {
-        setState(() => _pendingAnalysis = analysis);
+      if (showGame) {
+        setState(() => pendingAnalysis = analysis);
         _showAnalysisDialog();
       } else {
         setState(() {
-          _analysis = analysis;
-          _isLoading = false;
-          _showGame = false;
+          this.analysis = analysis;
+          isLoading = false;
+          showGame = false;
         });
       }
     } catch (e) {
       setState(() {
-        _isLoading = false;
-        _showGame = false;
+        isLoading = false;
+        showGame = false;
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -60,7 +66,7 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
   }
 
   void _showAnalysisDialog() {
-    if (_pendingAnalysis == null || !mounted) return;
+    if (pendingAnalysis == null || !mounted) return;
 
     showDialog(
       context: context,
@@ -74,11 +80,11 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
             onPressed: () {
               Navigator.pop(context);
               setState(() {
-                _analysis = _pendingAnalysis;
-                _showGame = false;
-                _isLoading = false;
-                _pendingAnalysis = null;
-                _playerFirst = !_playerFirst;
+                analysis = pendingAnalysis;
+                showGame = false;
+                isLoading = false;
+                pendingAnalysis = null;
+                playerFirst = !playerFirst;
               });
             },
             child: const Text('Show Analysis'),
@@ -93,7 +99,7 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
   }
 
   void _onGameComplete(bool gameEnded) {
-    if (gameEnded && _pendingAnalysis != null && mounted) {
+    if (gameEnded && pendingAnalysis != null && mounted) {
       _showAnalysisDialog();
     }
   }
@@ -123,28 +129,28 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
                   ),
                   SizedBox(height: size.height * 0.03),
                   Container(
-                    constraints: BoxConstraints(maxWidth: 600),
+                    constraints: const BoxConstraints(maxWidth: 600),
                     child: TextField(
-                      controller: _urlController,
+                      controller: urlController,
                       decoration: InputDecoration(
                         hintText: 'Enter link here',
-                        hintStyle: TextStyle(color: Colors.white70),
+                        hintStyle: const TextStyle(color: Colors.white70),
                         filled: true,
                         fillColor: Colors.black,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.white),
+                          borderSide: const BorderSide(color: Colors.white),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.white54),
+                          borderSide: const BorderSide(color: Colors.white54),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.blue),
+                          borderSide: const BorderSide(color: Colors.blue),
                         ),
                       ),
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                   SizedBox(height: size.height * 0.02),
@@ -152,7 +158,7 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
                     width: size.width > 600 ? 300 : double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _analyzeLink,
+                      onPressed: isLoading ? null : _analyzeLink,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         shape: RoundedRectangleBorder(
@@ -160,7 +166,7 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
                         ),
                       ),
                       child: Text(
-                        _isLoading ? 'Analyzing...' : 'Analyze',
+                        isLoading ? 'Analyzing...' : 'Analyze',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: size.width > 600 ? 18 : 16,
@@ -172,10 +178,10 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
               ),
             ),
             Expanded(
-              child: _showGame
+              child: showGame
                   ? TicTacToe(
                       onGameComplete: _onGameComplete,
-                      playerFirst: _playerFirst,
+                      playerFirst: playerFirst,
                     )
                   : SingleChildScrollView(
                       padding: EdgeInsets.all(padding),
@@ -194,7 +200,7 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
   }
 
   Widget _buildAnalysisResult() {
-    final analysis = _analysis;
+    final analysis = this.analysis;
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width <= 600;
 
@@ -266,6 +272,7 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
                     children: [
                       TableRow(
                         decoration: BoxDecoration(
+                          // ignore: deprecated_member_use
                           color: Colors.white.withOpacity(0.1),
                         ),
                         children: [
@@ -351,7 +358,7 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
 
   @override
   void dispose() {
-    _urlController.dispose();
+    urlController.dispose();
     super.dispose();
   }
 }
