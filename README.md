@@ -160,7 +160,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👥 Contributors
 
-- Soham Chakraborty - Project Lead & Developer
+- Soham Pansare - Project Lead & Developer
 
 ---
 
