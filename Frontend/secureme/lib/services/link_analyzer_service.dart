@@ -6,15 +6,17 @@ import 'api_config.dart';
 class LinkAnalyzerService {
   Future<LinkAnalysis> analyzeLink(String url) async {
     try {
-      final response = await http.post(
+      final response = await http
+          .post(
         Uri.parse(ApiConfig.scanUrl),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: json.encode({'url': url}),
-      ).timeout(
-        const Duration(seconds: 30),
+      )
+          .timeout(
+        const Duration(seconds: 60),
         onTimeout: () {
           throw Exception('Request timed out. Please try again.');
         },
@@ -28,11 +30,13 @@ class LinkAnalyzerService {
           throw Exception(jsonData['error'] ?? 'Failed to analyze link');
         }
       } else {
-        throw Exception('Server error: ${response.statusCode} - ${response.body}');
+        throw Exception(
+            'Server error: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       if (e.toString().contains('SocketException')) {
-        throw Exception('Network error. Please check your internet connection.');
+        throw Exception(
+            'Network error. Please check your internet connection.');
       }
       rethrow;
     }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SecureMe</string>
+    <string name="accessibility_service_description">SecureMe Link Analysis Service - Monitors and analyzes links for security threats</string>
+</resources>

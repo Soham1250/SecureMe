@@ -3,6 +3,7 @@
     
     <!-- Permissions -->
     <uses-permission android:name="android.permission.BIND_QUICK_SETTINGS_TILE" />
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
     
     <application
         android:label="secureme"
@@ -40,6 +41,19 @@
             <meta-data
                 android:name="android.service.quicksettings.ACTIVE_TILE"
                 android:value="false" />
+        </service>
+
+        <!-- Accessibility Service -->
+        <service
+            android:name=".LinkAnalysisAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/link_analysis_service_config" />
         </service>
 
         <meta-data
