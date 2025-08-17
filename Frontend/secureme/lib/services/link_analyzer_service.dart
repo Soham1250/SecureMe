@@ -16,7 +16,7 @@ class LinkAnalyzerService {
         body: json.encode({'url': url}),
       )
           .timeout(
-        const Duration(seconds: 60),
+        const Duration(seconds: 120),
         onTimeout: () {
           throw Exception('Request timed out. Please try again.');
         },
