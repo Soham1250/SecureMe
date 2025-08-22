@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/link_analyzer_screen.dart';
+import 'screens/password_manager_screen.dart';
 
 void main() {
   runApp(const SecureMeApp());
@@ -95,7 +96,12 @@ class HomePage extends StatelessWidget {
                       'Password Manager',
                       Icons.password,
                       () {
-                        // TODO: Implement password manager
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PasswordManagerScreen(),
+                          ),
+                        );
                       },
                     ),
                     _buildFeatureCard(
