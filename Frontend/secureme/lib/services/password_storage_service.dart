@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:cryptography/cryptography.dart';
 import '../models/password_entry.dart';
 
 class PasswordStorageService {
@@ -109,22 +111,46 @@ class PasswordStorageService {
   // Set master password for additional security
   Future<void> setMasterPassword(String password) async {
     try {
-      // Hash the password before storing
-      final hashedPassword = _hashPassword(password);
+      // Use secure PBKDF2 hashing
+      final hashedPassword = await _hashMasterPasswordPBKDF2(password);
       await _storage.write(key: _masterPasswordKey, value: hashedPassword);
     } catch (e) {
       throw Exception('Failed to set master password: $e');
     }
   }
 
-  // Verify master password
+  // Verify master password with migration support
   Future<bool> verifyMasterPassword(String password) async {
     try {
       final storedHash = await _storage.read(key: _masterPasswordKey);
       if (storedHash == null) return false;
       
-      final hashedInput = _hashPassword(password);
-      return hashedInput == storedHash;
+      // Try to parse as JSON (new format)
+      try {
+        final envelope = jsonDecode(storedHash) as Map<String, dynamic>;
+        if (envelope.containsKey('v') && envelope['v'] == 1) {
+          // New PBKDF2 format
+          return await _verifyMasterPasswordPBKDF2(password, envelope);
+        }
+      } catch (_) {
+        // Not JSON, try legacy format
+      }
+      
+      // Legacy format verification
+      final legacyHash = _hashPasswordLegacy(password);
+      if (legacyHash == storedHash) {
+        // Migration: upgrade to PBKDF2 on successful legacy verification
+        try {
+          final newHash = await _hashMasterPasswordPBKDF2(password);
+          await _storage.write(key: _masterPasswordKey, value: newHash);
+        } catch (e) {
+          // Migration failed, but authentication succeeded
+          // Log error but don't fail the authentication
+        }
+        return true;
+      }
+      
+      return false;
     } catch (e) {
       return false;
     }
@@ -168,10 +194,77 @@ class PasswordStorageService {
     await _storage.write(key: _passwordsKey, value: passwordsJson);
   }
 
-  String _hashPassword(String password) {
-    // Simple hash for demonstration - in production, use bcrypt or similar
+  // Legacy hash method for backward compatibility
+  String _hashPasswordLegacy(String password) {
     final bytes = utf8.encode(password + 'secureme_salt');
     return base64Encode(bytes);
+  }
+
+  // Secure PBKDF2 hash method
+  Future<String> _hashMasterPasswordPBKDF2(String password, {Uint8List? salt, int iterations = 150000}) async {
+    final algorithm = Pbkdf2(
+      macAlgorithm: Hmac.sha256(),
+      iterations: iterations,
+      bits: 256,
+    );
+    
+    final actualSalt = salt ?? _generateSalt();
+    final secretKey = await algorithm.deriveKey(
+      secretKey: SecretKey(utf8.encode(password)),
+      nonce: actualSalt,
+    );
+    
+    final keyBytes = await secretKey.extractBytes();
+    
+    // Return JSON envelope with all parameters
+    final envelope = {
+      'v': 1,
+      'algo': 'PBKDF2-HMAC-SHA256',
+      'it': iterations,
+      'salt': base64Encode(actualSalt),
+      'hash': base64Encode(keyBytes),
+    };
+    
+    return jsonEncode(envelope);
+  }
+
+  // Verify PBKDF2 hash
+  Future<bool> _verifyMasterPasswordPBKDF2(String password, Map<String, dynamic> envelope) async {
+    try {
+      final iterations = envelope['it'] as int;
+      final salt = base64Decode(envelope['salt'] as String);
+      final storedHash = base64Decode(envelope['hash'] as String);
+      
+      final algorithm = Pbkdf2(
+        macAlgorithm: Hmac.sha256(),
+        iterations: iterations,
+        bits: 256,
+      );
+      
+      final secretKey = await algorithm.deriveKey(
+        secretKey: SecretKey(utf8.encode(password)),
+        nonce: salt,
+      );
+      
+      final computedHash = await secretKey.extractBytes();
+      
+      // Constant-time comparison
+      if (computedHash.length != storedHash.length) return false;
+      
+      int result = 0;
+      for (int i = 0; i < computedHash.length; i++) {
+        result |= computedHash[i] ^ storedHash[i];
+      }
+      
+      return result == 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Generate cryptographically secure random salt
+  Uint8List _generateSalt([int length = 16]) {
+    return Uint8List.fromList(List.generate(length, (_) => SecureRandom.fast.nextInt(256)));
   }
 
   // Export passwords (for backup functionality)

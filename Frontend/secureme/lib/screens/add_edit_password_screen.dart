@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:math';
 import '../models/password_entry.dart';
 import '../services/password_storage_service.dart';
+import '../services/password_generator_service.dart';
+import '../widgets/password_generator_dialog.dart';
 
 class AddEditPasswordScreen extends StatefulWidget {
   final PasswordEntry? password;
@@ -111,92 +112,26 @@ class _AddEditPasswordScreenState extends State<AddEditPasswordScreen> {
     }
   }
 
-  void _generatePassword() {
-    final password = _generateSecurePassword();
-    _passwordController.text = password;
-  }
-
-  String _generateSecurePassword({int length = 16}) {
-    const String lowercase = 'abcdefghijklmnopqrstuvwxyz';
-    const String uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const String numbers = '0123456789';
-    const String symbols = '!@#\$%^&*()_+-=[]{}|;:,.<>?';
+  Future<void> _generatePassword() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => const PasswordGeneratorDialog(),
+    );
     
-    final String allChars = lowercase + uppercase + numbers + symbols;
-    final Random random = Random.secure();
-    
-    // Ensure at least one character from each category
-    String password = '';
-    password += lowercase[random.nextInt(lowercase.length)];
-    password += uppercase[random.nextInt(uppercase.length)];
-    password += numbers[random.nextInt(numbers.length)];
-    password += symbols[random.nextInt(symbols.length)];
-    
-    // Fill the rest randomly
-    for (int i = 4; i < length; i++) {
-      password += allChars[random.nextInt(allChars.length)];
+    if (result != null) {
+      _passwordController.text = result;
     }
-    
-    // Shuffle the password
-    final List<String> passwordList = password.split('');
-    passwordList.shuffle(random);
-    
-    return passwordList.join('');
-  }
-
-  int _getPasswordStrength(String password) {
-    if (password.isEmpty) return 0;
-    
-    int score = 0;
-    
-    // Length check
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
-    
-    // Character variety checks
-    if (password.contains(RegExp(r'[a-z]'))) score++;
-    if (password.contains(RegExp(r'[A-Z]'))) score++;
-    if (password.contains(RegExp(r'[0-9]'))) score++;
-    if (password.contains(RegExp(r'[!@#\$%^&*()_+\-=\[\]{}|;:,.<>?]'))) score++;
-    
-    return score;
   }
 
   Color _getPasswordStrengthColor(int strength) {
-    switch (strength) {
-      case 0:
-      case 1:
-        return Colors.red;
-      case 2:
-      case 3:
-        return Colors.orange;
-      case 4:
-      case 5:
-        return Colors.yellow;
-      case 6:
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
+    if (strength < 30) return Colors.red;
+    if (strength < 50) return Colors.orange;
+    if (strength < 70) return Colors.yellow[700]!;
+    if (strength < 90) return Colors.lightGreen;
+    return Colors.green;
   }
 
-  String _getPasswordStrengthText(int strength) {
-    switch (strength) {
-      case 0:
-      case 1:
-        return 'Very Weak';
-      case 2:
-      case 3:
-        return 'Weak';
-      case 4:
-      case 5:
-        return 'Good';
-      case 6:
-        return 'Strong';
-      default:
-        return '';
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -276,9 +211,9 @@ class _AddEditPasswordScreenState extends State<AddEditPasswordScreen> {
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.refresh),
+                      icon: const Icon(Icons.auto_fix_high),
                       onPressed: _generatePassword,
-                      tooltip: 'Generate Password',
+                      tooltip: 'Advanced Generator',
                     ),
                     IconButton(
                       icon: const Icon(Icons.copy),
@@ -316,9 +251,13 @@ class _AddEditPasswordScreenState extends State<AddEditPasswordScreen> {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   Text(
-                    _getPasswordStrengthText(_getPasswordStrength(_passwordController.text)),
+                    PasswordGeneratorService.getStrengthDescription(
+                      PasswordGeneratorService.calculateStrength(_passwordController.text)
+                    ),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: _getPasswordStrengthColor(_getPasswordStrength(_passwordController.text)),
+                      color: _getPasswordStrengthColor(
+                        PasswordGeneratorService.calculateStrength(_passwordController.text)
+                      ),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -326,10 +265,12 @@ class _AddEditPasswordScreenState extends State<AddEditPasswordScreen> {
               ),
               const SizedBox(height: 4),
               LinearProgressIndicator(
-                value: _getPasswordStrength(_passwordController.text) / 6,
+                value: PasswordGeneratorService.calculateStrength(_passwordController.text) / 100,
                 backgroundColor: Colors.grey[300],
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  _getPasswordStrengthColor(_getPasswordStrength(_passwordController.text)),
+                  _getPasswordStrengthColor(
+                    PasswordGeneratorService.calculateStrength(_passwordController.text)
+                  ),
                 ),
               ),
             ],
