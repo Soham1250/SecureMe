@@ -158,7 +158,7 @@ export default function Home() {
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Protect yourself from cyber threats with SecureMe's comprehensive security suite featuring 
+              Protect yourself from cyber threats with SecureMe&apos;s comprehensive security suite featuring 
               password management, link analysis, and advanced threat detection.
             </p>
             
@@ -290,7 +290,7 @@ export default function Home() {
                   <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 mt-0.5 flex-shrink-0" />
                   <div className="text-xs sm:text-sm text-amber-800">
                     <p className="font-medium mb-1">Installation Note:</p>
-                    <p>You may need to enable "Install from Unknown Sources" in your device settings to install the APK.</p>
+                    <p>You may need to enable &quot;Install from Unknown Sources&quot; in your device settings to install the APK.</p>
                   </div>
                 </div>
               </div>
@@ -307,7 +307,7 @@ export default function Home() {
               Frequently Asked Questions
             </h2>
             <p className="text-xl text-gray-600">
-              Get answers to common questions about SecureMe's security features and functionality.
+              Get answers to common questions about SecureMe&apos;s security features and functionality.
             </p>
           </div>
           
