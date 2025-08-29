@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'link_analyzer_screen.dart';
 import 'password_manager_screen.dart';
 import '../providers/analytics_provider.dart';
+import '../widgets/secureme_logo.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -100,27 +101,46 @@ class _DashboardScreen extends StatelessWidget {
         SliverAppBar(
           expandedHeight: 140,
           flexibleSpace: FlexibleSpaceBar(
-            title: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Security Dashboard',
-                  style: GoogleFonts.inter(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Welcome back! Your security is our priority',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
+            title: LayoutBuilder(
+              builder: (context, constraints) {
+                final screenWidth = MediaQuery.of(context).size.width;
+                final isSmallScreen = screenWidth < 360;
+                
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SecureMeLogo(size: isSmallScreen ? 24 : 28),
+                    SizedBox(width: isSmallScreen ? 8 : 12),
+                    Flexible(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SecureMe',
+                            style: GoogleFonts.inter(
+                              fontSize: isSmallScreen ? 18 : 20,
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Your security is our priority',
+                            style: GoogleFonts.inter(
+                              fontSize: isSmallScreen ? 10 : 12,
+                              color: Colors.grey[600],
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
             background: Container(
               decoration: BoxDecoration(
@@ -459,6 +479,8 @@ class _QuickActionCard extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
             ),
           ],
         ),
