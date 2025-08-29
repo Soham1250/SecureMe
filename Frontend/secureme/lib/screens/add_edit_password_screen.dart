@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../models/password_entry.dart';
 import '../services/password_storage_service.dart';
 import '../services/password_generator_service.dart';
 import '../widgets/password_generator_dialog.dart';
+import '../providers/analytics_provider.dart';
 
 class AddEditPasswordScreen extends StatefulWidget {
   final PasswordEntry? password;
@@ -87,6 +89,11 @@ class _AddEditPasswordScreenState extends State<AddEditPasswordScreen> {
               : _notesController.text.trim(),
         );
         await _storageService.savePassword(entry);
+        
+        // Increment password counter only for new passwords
+        if (mounted) {
+          Provider.of<AnalyticsProvider>(context, listen: false).incrementPasswordCount();
+        }
       }
 
       if (mounted) {

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../models/password_entry.dart';
 import '../services/password_storage_service.dart';
 import '../widgets/auth_dialog.dart';
+import '../providers/analytics_provider.dart';
 import 'add_edit_password_screen.dart';
 
 class PasswordManagerScreen extends StatefulWidget {
@@ -43,6 +45,12 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
       });
 
       final passwords = await _storageService.getAllPasswords();
+      
+      // Update the analytics provider with actual password count
+      if (mounted) {
+        Provider.of<AnalyticsProvider>(context, listen: false).setPasswordCount(passwords.length);
+      }
+      
       setState(() {
         _passwords = passwords;
         _filteredPasswords = passwords;
@@ -149,6 +157,12 @@ class _PasswordManagerScreenState extends State<PasswordManagerScreen> {
     if (confirmed == true) {
       try {
         await _storageService.deletePassword(password.id);
+        
+        // Decrement password counter
+        if (mounted) {
+          Provider.of<AnalyticsProvider>(context, listen: false).decrementPasswordCount();
+        }
+        
         await _loadPasswords();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

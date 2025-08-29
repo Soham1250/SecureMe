@@ -7,7 +7,7 @@ import '../models/password_entry.dart';
 class PasswordStorageService {
   static const String _passwordsKey = 'stored_passwords';
   static const String _masterPasswordKey = 'master_password_hash';
-  
+
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(
       encryptedSharedPreferences: true,
@@ -24,9 +24,7 @@ class PasswordStorageService {
       if (passwordsJson == null) return [];
 
       final List<dynamic> passwordsList = jsonDecode(passwordsJson);
-      return passwordsList
-          .map((json) => PasswordEntry.fromJson(json))
-          .toList();
+      return passwordsList.map((json) => PasswordEntry.fromJson(json)).toList();
     } catch (e) {
       throw Exception('Failed to load passwords: $e');
     }
@@ -36,7 +34,7 @@ class PasswordStorageService {
   Future<void> savePassword(PasswordEntry entry) async {
     try {
       final passwords = await getAllPasswords();
-      
+
       // Check if password with same ID already exists
       final existingIndex = passwords.indexWhere((p) => p.id == entry.id);
       if (existingIndex != -1) {
@@ -56,7 +54,7 @@ class PasswordStorageService {
     try {
       final passwords = await getAllPasswords();
       final index = passwords.indexWhere((p) => p.id == entry.id);
-      
+
       if (index == -1) {
         throw Exception('Password entry not found');
       }
@@ -97,11 +95,11 @@ class PasswordStorageService {
     try {
       final passwords = await getAllPasswords();
       final lowerQuery = query.toLowerCase();
-      
+
       return passwords.where((p) {
         return p.title.toLowerCase().contains(lowerQuery) ||
-               (p.website?.toLowerCase().contains(lowerQuery) ?? false) ||
-               p.username.toLowerCase().contains(lowerQuery);
+            (p.website?.toLowerCase().contains(lowerQuery) ?? false) ||
+            p.username.toLowerCase().contains(lowerQuery);
       }).toList();
     } catch (e) {
       throw Exception('Failed to search passwords: $e');
@@ -124,7 +122,7 @@ class PasswordStorageService {
     try {
       final storedHash = await _storage.read(key: _masterPasswordKey);
       if (storedHash == null) return false;
-      
+
       // Try to parse as JSON (new format)
       try {
         final envelope = jsonDecode(storedHash) as Map<String, dynamic>;
@@ -135,7 +133,7 @@ class PasswordStorageService {
       } catch (_) {
         // Not JSON, try legacy format
       }
-      
+
       // Legacy format verification
       final legacyHash = _hashPasswordLegacy(password);
       if (legacyHash == storedHash) {
@@ -149,7 +147,7 @@ class PasswordStorageService {
         }
         return true;
       }
-      
+
       return false;
     } catch (e) {
       return false;
@@ -201,21 +199,22 @@ class PasswordStorageService {
   }
 
   // Secure PBKDF2 hash method
-  Future<String> _hashMasterPasswordPBKDF2(String password, {Uint8List? salt, int iterations = 150000}) async {
+  Future<String> _hashMasterPasswordPBKDF2(String password,
+      {Uint8List? salt, int iterations = 150000}) async {
     final algorithm = Pbkdf2(
       macAlgorithm: Hmac.sha256(),
       iterations: iterations,
       bits: 256,
     );
-    
+
     final actualSalt = salt ?? _generateSalt();
     final secretKey = await algorithm.deriveKey(
       secretKey: SecretKey(utf8.encode(password)),
       nonce: actualSalt,
     );
-    
+
     final keyBytes = await secretKey.extractBytes();
-    
+
     // Return JSON envelope with all parameters
     final envelope = {
       'v': 1,
@@ -224,38 +223,39 @@ class PasswordStorageService {
       'salt': base64Encode(actualSalt),
       'hash': base64Encode(keyBytes),
     };
-    
+
     return jsonEncode(envelope);
   }
 
   // Verify PBKDF2 hash
-  Future<bool> _verifyMasterPasswordPBKDF2(String password, Map<String, dynamic> envelope) async {
+  Future<bool> _verifyMasterPasswordPBKDF2(
+      String password, Map<String, dynamic> envelope) async {
     try {
       final iterations = envelope['it'] as int;
       final salt = base64Decode(envelope['salt'] as String);
       final storedHash = base64Decode(envelope['hash'] as String);
-      
+
       final algorithm = Pbkdf2(
         macAlgorithm: Hmac.sha256(),
         iterations: iterations,
         bits: 256,
       );
-      
+
       final secretKey = await algorithm.deriveKey(
         secretKey: SecretKey(utf8.encode(password)),
         nonce: salt,
       );
-      
+
       final computedHash = await secretKey.extractBytes();
-      
+
       // Constant-time comparison
       if (computedHash.length != storedHash.length) return false;
-      
+
       int result = 0;
       for (int i = 0; i < computedHash.length; i++) {
         result |= computedHash[i] ^ storedHash[i];
       }
-      
+
       return result == 0;
     } catch (e) {
       return false;
@@ -264,7 +264,8 @@ class PasswordStorageService {
 
   // Generate cryptographically secure random salt
   Uint8List _generateSalt([int length = 16]) {
-    return Uint8List.fromList(List.generate(length, (_) => SecureRandom.fast.nextInt(256)));
+    return Uint8List.fromList(
+        List.generate(length, (_) => SecureRandom.fast.nextInt(256)));
   }
 
   // Export passwords (for backup functionality)
@@ -281,10 +282,9 @@ class PasswordStorageService {
   Future<void> importPasswords(String jsonData) async {
     try {
       final List<dynamic> passwordsList = jsonDecode(jsonData);
-      final passwords = passwordsList
-          .map((json) => PasswordEntry.fromJson(json))
-          .toList();
-      
+      final passwords =
+          passwordsList.map((json) => PasswordEntry.fromJson(json)).toList();
+
       await _savePasswordsList(passwords);
     } catch (e) {
       throw Exception('Failed to import passwords: $e');

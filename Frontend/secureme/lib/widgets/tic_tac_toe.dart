@@ -22,6 +22,7 @@ class _TicTacToeState extends State<TicTacToe> with TickerProviderStateMixin {
   bool gameEnded = false;
   String winner = '';
   List<int>? winningLine;
+  int restartCountdown = 0;
 
   // Statistics
   int playerWins = 0;
@@ -52,6 +53,7 @@ class _TicTacToeState extends State<TicTacToe> with TickerProviderStateMixin {
     gameEnded = false;
     winner = '';
     winningLine = null;
+    restartCountdown = 0;
 
     // Reset and dispose old animation controllers
     for (var controller in moveControllers) {
@@ -252,17 +254,45 @@ class _TicTacToeState extends State<TicTacToe> with TickerProviderStateMixin {
       playerWins++;
       lineController?.forward();
       widget.onGameComplete(true);
+      _scheduleAutoRestart();
     } else if (checkWin('X')) {
       gameEnded = true;
       winner = 'Computer';
       computerWins++;
       lineController?.forward();
       widget.onGameComplete(true);
+      _scheduleAutoRestart();
     } else if (isBoardFull()) {
       gameEnded = true;
       winner = 'Draw';
       draws++;
       widget.onGameComplete(true);
+      _scheduleAutoRestart();
+    }
+  }
+
+  void _scheduleAutoRestart() {
+    setState(() {
+      restartCountdown = 3;
+    });
+    
+    _startCountdown();
+  }
+
+  void _startCountdown() {
+    if (restartCountdown > 0) {
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          setState(() {
+            restartCountdown--;
+          });
+          if (restartCountdown > 0) {
+            _startCountdown();
+          } else {
+            initializeGame();
+          }
+        }
+      });
     }
   }
 
@@ -394,26 +424,66 @@ class _TicTacToeState extends State<TicTacToe> with TickerProviderStateMixin {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: size.height * 0.02),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () => setState(initializeGame),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    if (restartCountdown > 0)
+                      Column(
+                        children: [
+                          Text(
+                            'Next game starts in $restartCountdown...',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: isSmallScreen ? 14 : 16,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
-                        child: Text(
-                          'Play Again',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: isSmallScreen ? 16 : 18,
+                          SizedBox(height: size.height * 0.01),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  restartCountdown = 0;
+                                  initializeGame();
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                'Start Now',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isSmallScreen ? 16 : 18,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () => setState(() => initializeGame()),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'Play Again',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: isSmallScreen ? 16 : 18,
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

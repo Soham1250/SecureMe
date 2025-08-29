@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   # UI & Theming
   google_fonts: ^6.1.0
+  # State Management
+  provider: ^6.1.1
   
   # Password manager dependencies
   flutter_secure_storage: ^9.2.2

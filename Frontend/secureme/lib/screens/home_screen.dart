@@ -1,7 +1,11 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'link_analyzer_screen.dart';
 import 'password_manager_screen.dart';
+import '../providers/analytics_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,14 +14,14 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
     const _DashboardScreen(),
     const PasswordManagerScreen(),
     const LinkAnalyzerScreen(),
-    const _ProfileScreen(),
   ];
 
   @override
@@ -26,9 +30,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (index >= 0 && index < _screens.length) {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   @override
@@ -69,10 +75,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               icon: Icon(Icons.link_rounded),
               label: 'Link Scan',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
-              label: 'Profile',
-            ),
           ],
           currentIndex: _selectedIndex,
           selectedItemColor: Theme.of(context).colorScheme.primary,
@@ -96,15 +98,29 @@ class _DashboardScreen extends StatelessWidget {
     return CustomScrollView(
       slivers: [
         SliverAppBar(
-          expandedHeight: 160,
+          expandedHeight: 140,
           flexibleSpace: FlexibleSpaceBar(
-            title: Text(
-              'Welcome Back',
-              style: GoogleFonts.inter(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+            title: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Security Dashboard',
+                  style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Welcome back! Your security is our priority',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
             ),
             background: Container(
               decoration: BoxDecoration(
@@ -124,12 +140,133 @@ class _DashboardScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
+              _buildSecurityOverview(context),
+              const SizedBox(height: 24),
               _buildQuickActions(context),
               const SizedBox(height: 24),
-              _buildSecurityStatus(context),
-              const SizedBox(height: 24),
-              _buildRecentActivity(context),
+              _buildSecurityTips(context),
             ]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSecurityOverview(BuildContext context) {
+    final analytics = Provider.of<AnalyticsProvider>(context);
+    const alertsCount = 0; // Hardcoded to 0 as requested
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Security Overview',
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Secure',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem(
+                  context,
+                  'Passwords',
+                  analytics.passwordCount.toString(),
+                  Icons.lock_outline_rounded,
+                  Colors.blue,
+                ),
+                _buildStatItem(
+                  context,
+                  'Links Scanned',
+                  analytics.linksAnalyzed.toString(),
+                  Icons.link_rounded,
+                  Colors.purple,
+                ),
+                _buildStatItem(
+                  context,
+                  'Alerts',
+                  alertsCount.toString(),
+                  Icons.warning_amber_rounded,
+                  alertsCount > 0 ? Colors.orange : Colors.grey,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: Colors.grey[600],
           ),
         ),
       ],
@@ -153,24 +290,58 @@ class _DashboardScreen extends StatelessWidget {
             Expanded(
               child: _QuickActionCard(
                 icon: Icons.add_circle_outline_rounded,
-                label: 'Add New',
-                onTap: () {},
+                label: 'Add Password',
+                onTap: () {
+                  // Navigate to add password
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PasswordManagerScreen(),
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _QuickActionCard(
-                icon: Icons.search_rounded,
-                label: 'Search',
-                onTap: () {},
+                icon: Icons.link_rounded,
+                label: 'Scan Link',
+                onTap: () {
+                  // Navigate to link scanner
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LinkAnalyzerScreen(),
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _QuickActionCard(
-                icon: Icons.security_rounded,
-                label: 'Security',
-                onTap: () {},
+                icon: Icons.security_update_good_rounded,
+                label: 'Security Check',
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Coming Soon!'),
+                        content: const Text('We\'re working on this feature. Stay tuned!'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: const Text('OK'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -179,121 +350,53 @@ class _DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSecurityStatus(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.shield_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Security Status',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            LinearProgressIndicator(
-              value: 0.85,
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '85% Secure',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('Improve'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _buildSecurityTips(BuildContext context) {
+    final tips = [
+      'Enable two-factor authentication for added security',
+      'Regularly update your passwords',
+      'Be cautious of suspicious links in emails',
+      'Use a unique password for each account',
+    ];
 
-  Widget _buildRecentActivity(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Recent Activity',
-              style: GoogleFonts.inter(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text('View All'),
-            ),
-          ],
+        Text(
+          'Security Tips',
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        const SizedBox(height: 8),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: 3,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
+        const SizedBox(height: 12),
+        ...List.generate(
+          tips.length,
+          (index) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 2, right: 12),
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-                child: Icon(
-                  Icons.lock_rounded,
-                  color: Theme.of(context).colorScheme.primary,
+                Expanded(
+                  child: Text(
+                    tips[index],
+                    style: GoogleFonts.inter(
+                      color: Colors.grey[700],
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
-              ),
-              title: Text(
-                'Password Updated',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w500),
-              ),
-              subtitle: Text(
-                '2 hours ago',
-                style: GoogleFonts.inter(color: Colors.grey[600]),
-              ),
-              trailing: Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: Colors.grey[400],
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -327,41 +430,37 @@ class _QuickActionCard extends StatelessWidget {
               offset: const Offset(0, 2),
             ),
           ],
+          border: Border.all(
+            color: Colors.grey[200]!,
+            width: 1,
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 28,
-              color: Theme.of(context).colorScheme.primary,
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 22,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               label,
+              textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ProfileScreen extends StatelessWidget {
-  const _ProfileScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Profile Screen',
-        style: GoogleFonts.inter(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );

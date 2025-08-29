@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'widgets/secure_screen_wrapper.dart' show setupSecureScreen, SecureScreenWrapper;
+import 'providers/analytics_provider.dart';
 
 Future<void> main() async {
   // Ensure Flutter binding is initialized
@@ -28,7 +30,14 @@ Future<void> main() async {
   // Run the app with error boundaries
   runZonedGuarded<Future<void>>(
     () async {
-      runApp(const SecureMeApp());
+      runApp(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (context) => AnalyticsProvider()),
+          ],
+          child: const SecureMeApp(),
+        ),
+      );
     },
     (error, stackTrace) {
       if (kDebugMode) {

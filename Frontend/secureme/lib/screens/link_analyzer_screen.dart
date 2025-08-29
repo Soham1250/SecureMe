@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/link_analysis.dart';
 import '../services/link_analyzer_service.dart';
 import '../widgets/tic_tac_toe.dart';
+import '../providers/analytics_provider.dart';
 
 class LinkAnalyzerScreen extends StatefulWidget {
   const LinkAnalyzerScreen({super.key});
@@ -50,6 +52,9 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
       final analysis = await _linkAnalyzerService.analyzeLink(url);
 
       if (mounted) {
+        // Increment the links analyzed counter
+        Provider.of<AnalyticsProvider>(context, listen: false).incrementLinksAnalyzed();
+        
         setState(() {
           _analysis = analysis;
           _showGame = false;
@@ -205,6 +210,238 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
               'Engines',
               '${_analysis!.summary.enginesReporting.safe} / ${_analysis!.summary.totalEngines} found it safe',
             ),
+            if (_analysis!.summary.verdict.toLowerCase() != 'safe' && _analysis!.issues != null)
+              ..._buildEngineDetails(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildEngineDetails() {
+    final enginesReporting = _analysis!.summary.enginesReporting;
+    final totalNonSafe = enginesReporting.malicious + enginesReporting.suspicious + enginesReporting.undetected;
+    
+    if (totalNonSafe == 0) {
+      return [];
+    }
+
+    List<Widget> engineWidgets = [];
+    
+    // Add header
+    engineWidgets.addAll([
+      const Divider(height: 32),
+      Text(
+        'Engine Details ($totalNonSafe engines flagged this link)',
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Colors.red[700],
+        ),
+      ),
+      const SizedBox(height: 16),
+    ]);
+
+    // Add summary cards for each category
+    if (enginesReporting.malicious > 0) {
+      engineWidgets.add(_buildEngineSummaryCard(
+        'Malicious',
+        enginesReporting.malicious,
+        Colors.red,
+        Icons.dangerous,
+      ));
+    }
+    
+    if (enginesReporting.suspicious > 0) {
+      engineWidgets.add(_buildEngineSummaryCard(
+        'Suspicious',
+        enginesReporting.suspicious,
+        Colors.orange,
+        Icons.warning,
+      ));
+    }
+    
+    if (enginesReporting.undetected > 0) {
+      engineWidgets.add(_buildEngineSummaryCard(
+        'Undetected',
+        enginesReporting.undetected,
+        Colors.grey,
+        Icons.help,
+      ));
+    }
+
+    // Add individual engine details if available
+    if (_analysis!.issues != null && _analysis!.issues!.isNotEmpty) {
+      engineWidgets.addAll([
+        const SizedBox(height: 16),
+        Text(
+          'Individual Engine Reports',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[700],
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...(_analysis!.issues!.map((issue) => _buildEngineIssueCard(issue)).toList()),
+      ]);
+    }
+
+    return engineWidgets;
+  }
+
+  Widget _buildEngineSummaryCard(String category, int count, Color color, IconData icon) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 2,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border(
+            left: BorderSide(
+              color: color,
+              width: 4,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    category,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$count ${count == 1 ? 'engine' : 'engines'} classified this link as $category',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: color.withOpacity(0.3),
+                ),
+              ),
+              child: Text(
+                count.toString(),
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEngineIssueCard(SecurityIssue issue) {
+    Color getResultColor(String result) {
+      switch (result.toLowerCase()) {
+        case 'malicious':
+        case 'malware':
+        case 'phishing':
+          return Colors.red;
+        case 'suspicious':
+        case 'warning':
+          return Colors.orange;
+        case 'safe':
+        case 'clean':
+          return Colors.green;
+        default:
+          return Colors.grey;
+      }
+    }
+
+    IconData getResultIcon(String result) {
+      switch (result.toLowerCase()) {
+        case 'malicious':
+        case 'malware':
+        case 'phishing':
+          return Icons.dangerous;
+        case 'suspicious':
+        case 'warning':
+          return Icons.warning;
+        case 'safe':
+        case 'clean':
+          return Icons.check_circle;
+        default:
+          return Icons.help;
+      }
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(
+              getResultIcon(issue.result),
+              color: getResultColor(issue.result),
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    issue.name,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Category: ${issue.category}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: getResultColor(issue.result).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: getResultColor(issue.result).withOpacity(0.3),
+                ),
+              ),
+              child: Text(
+                issue.result,
+                style: TextStyle(
+                  color: getResultColor(issue.result),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -259,16 +496,42 @@ class _LinkAnalyzerScreenState extends State<LinkAnalyzerScreen> {
           ),
         ],
       ),
-      body: _showGame
-          ? TicTacToe(
-              playerFirst: true,
-              onGameComplete: (_) {
-                setState(() {
-                  _showGame = false;
-                });
-              },
+      body: _isLoading
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Analyzing your link...',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 20),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 30),
+                  const Text(
+                    'Play while you wait!',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: TicTacToe(
+                      playerFirst: true,
+                      onGameComplete: (_) {},
+                    ),
+                  ),
+                ],
+              ),
             )
-          : SingleChildScrollView(
+          : _showGame
+              ? TicTacToe(
+                  playerFirst: true,
+                  onGameComplete: (_) {
+                    setState(() {
+                      _showGame = false;
+                    });
+                  },
+                )
+              : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
