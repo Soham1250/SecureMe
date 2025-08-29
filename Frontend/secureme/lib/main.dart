@@ -1,9 +1,41 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'screens/link_analyzer_screen.dart';
-import 'screens/password_manager_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:google_fonts/google_fonts.dart';
+import 'screens/home_screen.dart';
+import 'widgets/secure_screen_wrapper.dart' show setupSecureScreen, SecureScreenWrapper;
 
-void main() {
-  runApp(const SecureMeApp());
+Future<void> main() async {
+  // Ensure Flutter binding is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set preferred orientations
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  
+  // Initialize secure screen settings with error handling
+  try {
+    await setupSecureScreen();
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('Error initializing secure screen: $e');
+    }
+  }
+  
+  // Run the app with error boundaries
+  runZonedGuarded<Future<void>>(
+    () async {
+      runApp(const SecureMeApp());
+    },
+    (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('Uncaught error: $error\n$stackTrace');
+      }
+    },
+  );
 }
 
 class SecureMeApp extends StatelessWidget {
@@ -14,164 +46,143 @@ class SecureMeApp extends StatelessWidget {
     return MaterialApp(
       title: 'SecureMe',
       debugShowCheckedModeBanner: false,
+      // Ensure consistent text rendering
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaleFactor: 1.0, // Prevent system font scaling
+          ),
+          child: child!,
+        );
+      },
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2196F3),
+          seedColor: const Color(0xFF4361EE),
+          primary: const Color(0xFF4361EE),
+          secondary: const Color(0xFF3F37C9),
+          tertiary: const Color(0xFF4895EF),
+          error: const Color(0xFFE63946),
+          surface: Colors.white,
           brightness: Brightness.light,
         ),
+        textTheme: GoogleFonts.interTextTheme(
+          Theme.of(context).textTheme,
+        ),
         useMaterial3: true,
+        fontFamily: 'Inter',
         appBarTheme: const AppBarTheme(
           centerTitle: true,
           elevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Color(0xFF1A1A2E),
+          titleTextStyle: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
+        cardTheme: CardTheme(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF4361EE),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 0,
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.grey[50],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2196F3),
+          seedColor: const Color(0xFF4895EF),
+          primary: const Color(0xFF4895EF),
+          secondary: const Color(0xFF4CC9F0),
+          tertiary: const Color(0xFF4361EE),
+          error: const Color(0xFFFF6B6B),
+          surface: const Color(0xFF1A1A2E),
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
-      ),
-      home: const HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SecureMe'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // TODO: Implement settings
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      const Icon(
-                        Icons.security,
-                        size: 48,
-                        color: Color(0xFF2196F3),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Welcome to SecureMe',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Your personal security companion',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  children: [
-                    _buildFeatureCard(
-                      context,
-                      'Password Manager',
-                      Icons.password,
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PasswordManagerScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildFeatureCard(
-                      context,
-                      'Link Analyzer',
-                      Icons.link,
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LinkAnalyzerScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildFeatureCard(
-                      context,
-                      'Secure Storage',
-                      Icons.security,
-                      () {
-                        // TODO: Implement secure storage
-                      },
-                    ),
-                    _buildFeatureCard(
-                      context,
-                      'Security Check',
-                      Icons.security_update_good,
-                      () {
-                        // TODO: Implement security check
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        fontFamily: 'Inter',
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          titleTextStyle: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard(
-    BuildContext context,
-    String title,
-    IconData icon,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 32,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
+        cardTheme: CardTheme(
+          elevation: 2,
+          color: const Color(0xFF16213E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF4895EF),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 0,
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF16213E),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          hintStyle: TextStyle(color: Colors.grey[400]),
+        ),
+      ),
+      home: Builder(
+        builder: (context) {
+          // Set system UI overlay style based on theme
+          SystemChrome.setSystemUIOverlayStyle(
+            Theme.of(context).brightness == Brightness.dark
+                ? SystemUiOverlayStyle.light
+                : SystemUiOverlayStyle.dark,
+          );
+          
+          return const SecureScreenWrapper(
+            child: HomeScreen(),
+          );
+        },
       ),
     );
   }

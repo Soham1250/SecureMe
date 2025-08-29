@@ -11,7 +11,6 @@
     
     <application
         android:label="secureme"
-        android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         
         <!-- Main Activity -->
@@ -22,7 +21,9 @@
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:showWhenLocked="true"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
