@@ -25,7 +25,11 @@ export const metadata: Metadata = {
     description: 'Protect yourself from cyber threats with SecureMe - featuring password management, link analysis, and advanced security tools.',
   },
   robots: 'index, follow',
-  viewport: 'width=device-width, initial-scale=1',
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({
