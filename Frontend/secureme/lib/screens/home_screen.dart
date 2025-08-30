@@ -102,7 +102,7 @@ class _DashboardScreen extends StatelessWidget {
         final isSmallScreen = screenWidth < 360;
         final isVerySmallScreen = screenWidth < 320;
         final padding = isVerySmallScreen ? 12.0 : 16.0;
-        
+
         return CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -116,8 +116,18 @@ class _DashboardScreen extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SecureMeLogo(size: isVerySmallScreen ? 20 : isSmallScreen ? 24 : 28),
-                      SizedBox(width: isVerySmallScreen ? 6 : isSmallScreen ? 8 : 12),
+                      SecureMeLogo(
+                          size: isVerySmallScreen
+                              ? 20
+                              : isSmallScreen
+                                  ? 24
+                                  : 28),
+                      SizedBox(
+                          width: isVerySmallScreen
+                              ? 6
+                              : isSmallScreen
+                                  ? 8
+                                  : 12),
                       Flexible(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -126,7 +136,11 @@ class _DashboardScreen extends StatelessWidget {
                             Text(
                               'SecureMe',
                               style: GoogleFonts.inter(
-                                fontSize: isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20,
+                                fontSize: isVerySmallScreen
+                                    ? 16
+                                    : isSmallScreen
+                                        ? 18
+                                        : 20,
                                 fontWeight: FontWeight.w700,
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
@@ -199,18 +213,22 @@ class _DashboardScreen extends StatelessWidget {
           children: [
             Flex(
               direction: isVerySmallScreen ? Axis.vertical : Axis.horizontal,
-              mainAxisAlignment: isVerySmallScreen 
-                  ? MainAxisAlignment.start 
+              mainAxisAlignment: isVerySmallScreen
+                  ? MainAxisAlignment.start
                   : MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: isVerySmallScreen 
-                  ? CrossAxisAlignment.start 
+              crossAxisAlignment: isVerySmallScreen
+                  ? CrossAxisAlignment.start
                   : CrossAxisAlignment.center,
               children: [
                 Flexible(
                   child: Text(
                     'Security Overview',
                     style: GoogleFonts.inter(
-                      fontSize: isVerySmallScreen ? 16 : isSmallScreen ? 17 : 18,
+                      fontSize: isVerySmallScreen
+                          ? 16
+                          : isSmallScreen
+                              ? 17
+                              : 18,
                       fontWeight: FontWeight.w600,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -219,9 +237,7 @@ class _DashboardScreen extends StatelessWidget {
                 if (isVerySmallScreen) const SizedBox(height: 8),
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: isVerySmallScreen ? 8 : 12, 
-                    vertical: 4
-                  ),
+                      horizontal: isVerySmallScreen ? 8 : 12, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -254,10 +270,7 @@ class _DashboardScreen extends StatelessWidget {
             SizedBox(height: isSmallScreen ? 12 : 16),
             LayoutBuilder(
               builder: (context, constraints) {
-                return Wrap(
-                  alignment: WrapAlignment.spaceEvenly,
-                  spacing: isVerySmallScreen ? 8 : 12,
-                  runSpacing: isVerySmallScreen ? 12 : 16,
+                return Row(
                   children: [
                     _buildStatItem(
                       context,
@@ -300,11 +313,10 @@ class _DashboardScreen extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isVerySmallScreen = screenWidth < 320;
     final isSmallScreen = screenWidth < 360;
-    
+
     return ConstrainedBox(
       constraints: BoxConstraints(
-        minWidth: isVerySmallScreen ? 80 : 90,
-        maxWidth: isVerySmallScreen ? 100 : 120,
+        minWidth: isVerySmallScreen ? 75 : 85,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -315,17 +327,17 @@ class _DashboardScreen extends StatelessWidget {
               color: color.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon, 
-              color: color, 
-              size: isVerySmallScreen ? 18 : 20
-            ),
+            child: Icon(icon, color: color, size: isVerySmallScreen ? 18 : 20),
           ),
           SizedBox(height: isVerySmallScreen ? 6 : 8),
           Text(
             value,
             style: GoogleFonts.inter(
-              fontSize: isVerySmallScreen ? 16 : isSmallScreen ? 17 : 18,
+              fontSize: isVerySmallScreen
+                  ? 16
+                  : isSmallScreen
+                      ? 17
+                      : 18,
               fontWeight: FontWeight.w700,
             ),
             overflow: TextOverflow.ellipsis,
@@ -349,14 +361,18 @@ class _DashboardScreen extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
     final isVerySmallScreen = screenWidth < 320;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Quick Actions',
           style: GoogleFonts.inter(
-            fontSize: isVerySmallScreen ? 16 : isSmallScreen ? 17 : 18,
+            fontSize: isVerySmallScreen
+                ? 16
+                : isSmallScreen
+                    ? 17
+                    : 18,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -402,7 +418,8 @@ class _DashboardScreen extends StatelessWidget {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: const Text('Coming Soon!'),
-                            content: const Text('We\'re working on this feature. Stay tuned!'),
+                            content: const Text(
+                                'We\'re working on this feature. Stay tuned!'),
                             actions: <Widget>[
                               TextButton(
                                 child: const Text('OK'),
@@ -462,7 +479,8 @@ class _DashboardScreen extends StatelessWidget {
                           builder: (BuildContext context) {
                             return AlertDialog(
                               title: const Text('Coming Soon!'),
-                              content: const Text('We\'re working on this feature. Stay tuned!'),
+                              content: const Text(
+                                  'We\'re working on this feature. Stay tuned!'),
                               actions: <Widget>[
                                 TextButton(
                                   child: const Text('OK'),
@@ -554,15 +572,14 @@ class _QuickActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isVerySmallScreen = screenWidth < 320;
-    
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(
-          vertical: isVerySmallScreen ? 12 : 16, 
-          horizontal: isVerySmallScreen ? 6 : 8
-        ),
+            vertical: isVerySmallScreen ? 12 : 16,
+            horizontal: isVerySmallScreen ? 6 : 8),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
@@ -601,7 +618,8 @@ class _QuickActionCard extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: isVerySmallScreen ? 10 : 12,
                   fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
