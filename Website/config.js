@@ -5,7 +5,7 @@
 const CONFIG = {
     // Development configuration
     development: {
-        APK_PATH: './SecureMe.apk', // Local development path
+        APK_PATH: '/SecureMe.apk', // Absolute path
         APK_FILENAME: 'SecureMe.apk',
         VERSION: '1.0.0',
         SIZE: '~23 MB',
@@ -40,7 +40,7 @@ function getAPKPath() {
     }
     
     // Fallback to default path
-    return 'SecureMe.apk';
+    return '/SecureMe.apk';
 }
 
 // Function to get current environment
