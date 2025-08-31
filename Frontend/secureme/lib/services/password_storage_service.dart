@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cryptography/cryptography.dart';
 import '../models/password_entry.dart';
+import 'persistent_password_storage_service.dart';
+import 'storage_migration_service.dart';
 
 class PasswordStorageService {
   static const String _passwordsKey = 'stored_passwords';
@@ -17,16 +19,35 @@ class PasswordStorageService {
     ),
   );
 
+  final PersistentPasswordStorageService _persistentStorage = PersistentPasswordStorageService();
+  final StorageMigrationService _migrationService = StorageMigrationService();
+  
+  String? _currentMasterPassword;
+
   // Get all stored passwords
   Future<List<PasswordEntry>> getAllPasswords() async {
     try {
-      final passwordsJson = await _storage.read(key: _passwordsKey);
-      if (passwordsJson == null) return [];
-
-      final List<dynamic> passwordsList = jsonDecode(passwordsJson);
-      return passwordsList.map((json) => PasswordEntry.fromJson(json)).toList();
+      // Check if migration is needed
+      if (await _migrationService.needsMigration()) {
+        throw Exception('Migration required. Please authenticate to migrate your data.');
+      }
+      
+      if (_currentMasterPassword == null) {
+        throw Exception('Master password required');
+      }
+      
+      return await _persistentStorage.getAllPasswords(_currentMasterPassword!);
     } catch (e) {
-      throw Exception('Failed to load passwords: $e');
+      // Fallback to old storage for backward compatibility
+      try {
+        final passwordsJson = await _storage.read(key: _passwordsKey);
+        if (passwordsJson == null) return [];
+
+        final List<dynamic> passwordsList = jsonDecode(passwordsJson);
+        return passwordsList.map((json) => PasswordEntry.fromJson(json)).toList();
+      } catch (fallbackError) {
+        throw Exception('Failed to load passwords: $e');
+      }
     }
   }
 

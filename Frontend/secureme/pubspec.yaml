@@ -45,6 +45,8 @@ dependencies:
   crypto: ^3.0.3
   cryptography: ^2.7.0
   device_info_plus: ^9.1.2
+  path_provider: ^2.1.1
+  permission_handler: ^11.0.1
 
 dev_dependencies:
   flutter_test:
