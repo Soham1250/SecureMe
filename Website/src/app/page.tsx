@@ -272,7 +272,7 @@ export default function Home() {
               <div className="space-y-4">
                 <a 
                   href="/secureme.apk" 
-                  download="SecureMe.apk"
+                  download="secureme.apk"
                   className="w-full bg-primary-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:bg-primary-700 hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 animate-glow"
                 >
                   <Download className="w-4 h-4 sm:w-5 sm:h-5" />
