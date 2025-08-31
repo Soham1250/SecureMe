@@ -11,7 +11,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'SecureMe - Advanced Cybersecurity Protection',
   description: 'Protect yourself from cyber threats with SecureMe - featuring password management, link analysis, and advanced security tools.',
-  keywords: 'cybersecurity, password manager, link analysis, phishing protection, security app',
+  keywords: 'cybersecurity, password manager, link analysis, phishing protection, security  App',
   authors: [{ name: 'SecureMe Team' }],
   openGraph: {
     title: 'SecureMe - Advanced Cybersecurity Protection',
