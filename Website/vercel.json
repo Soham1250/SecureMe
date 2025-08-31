@@ -1,0 +1,17 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "master": true,
+      "main": false
+    }
+  },
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
