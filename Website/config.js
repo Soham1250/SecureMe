@@ -5,10 +5,10 @@
 const CONFIG = {
     // Development configuration
     development: {
-        APK_PATH: './app-release.apk', // Local development path
+        APK_PATH: './SecureMe.apk', // Local development path
         APK_FILENAME: 'SecureMe.apk',
         VERSION: '1.0.0',
-        SIZE: '~15 MB',
+        SIZE: '~23 MB',
         COMPATIBILITY: 'Android 6.0+ (API 23+)'
     },
     
@@ -17,7 +17,7 @@ const CONFIG = {
         APK_PATH: getAPKPath(), // Dynamic path from environment
         APK_FILENAME: 'SecureMe.apk',
         VERSION: '1.0.0',
-        SIZE: '~15 MB',
+        SIZE: '~23 MB',
         COMPATIBILITY: 'Android 6.0+ (API 23+)'
     }
 };
@@ -40,7 +40,7 @@ function getAPKPath() {
     }
     
     // Fallback to default path
-    return 'app-release.apk';
+    return 'SecureMe.apk';
 }
 
 // Function to get current environment
