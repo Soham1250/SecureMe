@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureMe - Your Digital Security Guardian</title>
+    <meta name="apk-path" content="">
+    <meta name="description" content="SecureMe - Advanced cybersecurity application with password management, biometric authentication, and real-time threat detection.">
+    <meta name="keywords" content="cybersecurity, password manager, security app, digital protection, SecureMe">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="SecureMe - Your Digital Security Guardian">
+    <meta property="og:description" content="Advanced cybersecurity application with military-grade encryption and biometric authentication.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://secureme.app">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SecureMe - Your Digital Security Guardian">
+    <meta name="twitter:description" content="Advanced cybersecurity application with military-grade encryption and biometric authentication.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" href="favicon.ico">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <script src="config.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Matrix Background -->
+    <div class="matrix-bg" id="matrixBg"></div>
+    
+    <!-- Cursor Follower -->
+    <div class="cursor-follower" id="cursorFollower"></div>
+    
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <svg class="logo-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00ffff"/>
+                            <stop offset="100%" style="stop-color:#0080ff"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="url(#logoGradient)" stroke-width="3" fill="none"/>
+                    <circle cx="50" cy="45" r="8" fill="url(#logoGradient)"/>
+                    <rect x="45" y="55" width="10" height="15" rx="2" fill="url(#logoGradient)"/>
+                </svg>
+                <span class="logo-text">SecureMe</span>
+            </div>
+            
+            <div class="nav-menu" id="navMenu">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#security" class="nav-link">Security</a>
+                <a href="#download" class="nav-link">Download</a>
+                <a href="#faq" class="nav-link">FAQ</a>
+            </div>
+            
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-particles" id="heroParticles"></div>
+        
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    <span class="title-line">Your Digital</span>
+                    <span class="title-line gradient-text">Security Guardian</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Advanced cybersecurity application with military-grade encryption, 
+                    biometric authentication, and real-time threat detection.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#download" class="btn btn-primary">
+                        <span class="btn-text">Download Now</span>
+                        <span class="btn-glow"></span>
+                    </a>
+                    <a href="#features" class="btn btn-secondary">
+                        <span class="btn-text">Learn More</span>
+                        <span class="btn-glow"></span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="hero-visual">
+                <div class="phone-mockup">
+                    <div class="phone-screen">
+                        <div class="screen-content">
+                            <div class="security-rings">
+                                <div class="ring ring-1"></div>
+                                <div class="ring ring-2"></div>
+                                <div class="ring ring-3"></div>
+                            </div>
+                            <div class="shield-icon">
+                                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#00ffff"/>
+                                            <stop offset="100%" style="stop-color:#0080ff"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" fill="url(#shieldGradient)"/>
+                                    <circle cx="50" cy="45" r="8" fill="white"/>
+                                    <rect x="45" y="55" width="10" height="15" rx="2" fill="white"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="scroll-indicator">
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Advanced Security Features</h2>
+                <p class="section-subtitle">Comprehensive protection for your digital life</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <circle cx="12" cy="16" r="1"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Password Manager</h3>
+                    <p class="feature-description">
+                        Secure local storage with PBKDF2-HMAC-SHA256 encryption and 150,000 iterations for maximum protection.
+                    </p>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"/>
+                            <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                            <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                            <path d="M13 12h3a2 2 0 0 1 2 2v1"/>
+                            <path d="M11 12H8a2 2 0 0 0-2 2v1"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Biometric Authentication</h3>
+                    <p class="feature-description">
+                        Fingerprint and face ID support with secure device passcode fallback for ultimate convenience.
+                    </p>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Link Analysis</h3>
+                    <p class="feature-description">
+                        Real-time threat detection and malicious link scanning to protect against phishing attacks.
+                    </p>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Local Storage</h3>
+                    <p class="feature-description">
+                        All data stored locally on your device using Android Keystore and iOS Keychain. No cloud transmission.
+                    </p>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="23"/>
+                            <line x1="8" y1="23" x2="16" y2="23"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Password Generator</h3>
+                    <p class="feature-description">
+                        Generate cryptographically secure passwords with customizable length and complexity requirements.
+                    </p>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="600">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Session Management</h3>
+                    <p class="feature-description">
+                        Automatic session timeout and manual lock functionality to prevent unauthorized access.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Security Section -->
+    <section id="security" class="security">
+        <div class="container">
+            <div class="security-content">
+                <div class="security-text">
+                    <h2 class="section-title">Military-Grade Security</h2>
+                    <p class="section-subtitle">Your data protected with industry-leading encryption standards</p>
+                    
+                    <div class="security-features">
+                        <div class="security-item">
+                            <div class="security-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                </svg>
+                            </div>
+                            <div class="security-info">
+                                <h3>PBKDF2-HMAC-SHA256</h3>
+                                <p>150,000 iterations with per-user salt for maximum password protection</p>
+                            </div>
+                        </div>
+                        
+                        <div class="security-item">
+                            <div class="security-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <path d="M21 15l-5-5L5 21"/>
+                                </svg>
+                            </div>
+                            <div class="security-info">
+                                <h3>Biometric Integration</h3>
+                                <p>Hardware-backed authentication using device secure elements</p>
+                            </div>
+                        </div>
+                        
+                        <div class="security-item">
+                            <div class="security-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                    <polyline points="3.27,6.96 12,12.01 20.73,6.96"/>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                                </svg>
+                            </div>
+                            <div class="security-info">
+                                <h3>Zero-Knowledge Architecture</h3>
+                                <p>All encryption happens locally - we never see your data</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="security-visual">
+                    <div class="shield-container">
+                        <div class="shield-main">
+                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="mainShieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#00ffff"/>
+                                        <stop offset="100%" style="stop-color:#0080ff"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" fill="url(#mainShieldGradient)"/>
+                                <circle cx="50" cy="45" r="8" fill="white"/>
+                                <rect x="45" y="55" width="10" height="15" rx="2" fill="white"/>
+                            </svg>
+                        </div>
+                        <div class="pulse-ring pulse-ring-1"></div>
+                        <div class="pulse-ring pulse-ring-2"></div>
+                        <div class="pulse-ring pulse-ring-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Download Section -->
+    <section id="download" class="download">
+        <div class="container">
+            <div class="download-content">
+                <div class="download-header">
+                    <h2 class="section-title">Download SecureMe</h2>
+                    <p class="section-subtitle">Get started with the most advanced mobile security application</p>
+                </div>
+                
+                <div class="download-card">
+                    <div class="download-info">
+                        <div class="app-icon">
+                            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="appIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#00ffff"/>
+                                        <stop offset="100%" style="stop-color:#0080ff"/>
+                                    </linearGradient>
+                                </defs>
+                                <rect x="10" y="10" width="80" height="80" rx="20" fill="url(#appIconGradient)"/>
+                                <path d="M50 25 L70 40 L70 65 L50 80 L30 65 L30 40 Z" fill="white"/>
+                                <circle cx="50" cy="50" r="6" fill="url(#appIconGradient)"/>
+                                <rect x="47" y="57" width="6" height="10" rx="1" fill="url(#appIconGradient)"/>
+                            </svg>
+                        </div>
+                        
+                        <div class="app-details">
+                            <h3>SecureMe APK</h3>
+                            <p class="version">Version 1.0.0</p>
+                            <p class="size">Size: ~15 MB</p>
+                            <p class="compatibility">Android 6.0+ (API 23+)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="download-actions">
+                        <!-- APK path is now managed by config.js -->
+                        <!-- Use data-apk-download attribute for dynamic path loading -->
+                        <a href="#" class="btn btn-download" data-apk-download download="app-release.apk">
+                            <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7,10 12,15 17,10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            <span>Download APK</span>
+                            <span class="btn-glow"></span>
+                        </a>
+                        
+                        <div class="qr-code">
+                            <div class="qr-placeholder">
+                                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="10" y="10" width="15" height="15" fill="currentColor"/>
+                                    <rect x="75" y="10" width="15" height="15" fill="currentColor"/>
+                                    <rect x="10" y="75" width="15" height="15" fill="currentColor"/>
+                                    <rect x="30" y="30" width="5" height="5" fill="currentColor"/>
+                                    <rect x="40" y="30" width="5" height="5" fill="currentColor"/>
+                                    <rect x="50" y="30" width="5" height="5" fill="currentColor"/>
+                                    <rect x="60" y="30" width="5" height="5" fill="currentColor"/>
+                                    <rect x="30" y="40" width="5" height="5" fill="currentColor"/>
+                                    <rect x="50" y="40" width="5" height="5" fill="currentColor"/>
+                                    <rect x="30" y="50" width="5" height="5" fill="currentColor"/>
+                                    <rect x="40" y="50" width="5" height="5" fill="currentColor"/>
+                                    <rect x="60" y="50" width="5" height="5" fill="currentColor"/>
+                                    <rect x="30" y="60" width="5" height="5" fill="currentColor"/>
+                                    <rect x="50" y="60" width="5" height="5" fill="currentColor"/>
+                                    <rect x="60" y="60" width="5" height="5" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <p>Scan to Download</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="installation-guide">
+                    <h3>Installation Instructions</h3>
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Enable Unknown Sources</h4>
+                                <p>Go to Settings > Security > Enable "Unknown Sources" or "Install unknown apps"</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Download APK</h4>
+                                <p>Click the download button above to get the SecureMe APK file</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Install Application</h4>
+                                <p>Open the downloaded APK file and follow the installation prompts</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h4>Setup Security</h4>
+                                <p>Launch SecureMe and configure your master password and biometric authentication</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="system-requirements">
+                    <h3>System Requirements</h3>
+                    <div class="requirements-grid">
+                        <div class="requirement">
+                            <strong>OS:</strong> Android 6.0+ (API Level 23)
+                        </div>
+                        <div class="requirement">
+                            <strong>RAM:</strong> 2GB minimum, 4GB recommended
+                        </div>
+                        <div class="requirement">
+                            <strong>Storage:</strong> 50MB free space
+                        </div>
+                        <div class="requirement">
+                            <strong>Permissions:</strong> Biometric, Storage, Network
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+                <p class="section-subtitle">Everything you need to know about SecureMe</p>
+            </div>
+            
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>How secure is SecureMe's password storage?</h3>
+                        <div class="faq-toggle">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>SecureMe uses PBKDF2-HMAC-SHA256 with 150,000 iterations and per-user salt for password hashing. All data is stored locally using Android Keystore and iOS Keychain, providing hardware-backed encryption. Your passwords never leave your device.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>What biometric authentication methods are supported?</h3>
+                        <div class="faq-toggle">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>SecureMe supports fingerprint recognition, face ID, and device passcode authentication. The app automatically detects available biometric methods on your device and provides secure fallback options.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Does SecureMe send my data to the cloud?</h3>
+                        <div class="faq-toggle">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No. SecureMe follows a zero-knowledge architecture where all encryption and data storage happens locally on your device. We never have access to your passwords or personal data.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>How does the link analysis feature work?</h3>
+                        <div class="faq-toggle">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>SecureMe analyzes URLs in real-time to detect potential phishing attacks, malware, and suspicious domains. The analysis is performed using advanced threat detection algorithms to keep you safe while browsing.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Can I export my passwords to another app?</h3>
+                        <div class="faq-toggle">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>For security reasons, SecureMe doesn't support password export. This prevents potential data breaches and ensures your passwords remain secure within the app's encrypted environment.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>What happens if I forget my master password?</h3>
+                        <div class="faq-toggle">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Due to our zero-knowledge architecture, we cannot recover your master password. You would need to reset the app and lose access to stored passwords. We recommend using biometric authentication as your primary method.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Is SecureMe open source?</h3>
+                        <div class="faq-toggle">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>SecureMe is currently proprietary software. However, we follow industry best practices for security and regularly undergo security audits to ensure the highest level of protection for our users.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>How often should I update my passwords?</h3>
+                        <div class="faq-toggle">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We recommend updating passwords every 3-6 months or immediately if you suspect a breach. SecureMe's password generator makes it easy to create strong, unique passwords for all your accounts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <svg class="logo-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="footerLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#00ffff"/>
+                                    <stop offset="100%" style="stop-color:#0080ff"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" stroke="url(#footerLogoGradient)" stroke-width="3" fill="none"/>
+                            <circle cx="50" cy="45" r="8" fill="url(#footerLogoGradient)"/>
+                            <rect x="45" y="55" width="10" height="15" rx="2" fill="url(#footerLogoGradient)"/>
+                        </svg>
+                        <span class="logo-text">SecureMe</span>
+                    </div>
+                    <p class="footer-description">
+                        Your trusted digital security guardian. Protecting your digital life with military-grade encryption and advanced threat detection.
+                    </p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#security">Security</a></li>
+                        <li><a href="#download">Download</a></li>
+                        <li><a href="#faq">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Security</h4>
+                    <ul class="footer-links">
+                        <li><a href="#security">Encryption</a></li>
+                        <li><a href="#security">Biometric Auth</a></li>
+                        <li><a href="#security">Local Storage</a></li>
+                        <li><a href="#security">Zero Knowledge</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul class="footer-links">
+                        <li><a href="#faq">Help Center</a></li>
+                        <li><a href="mailto:support@secureme.app">Contact Us</a></li>
+                        <li><a href="#download">Installation Guide</a></li>
+                        <li><a href="#security">Security Audit</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <p>&copy; 2024 SecureMe. All rights reserved.</p>
+                    <div class="footer-social">
+                        <a href="#" class="social-link" aria-label="Twitter">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="GitHub">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="LinkedIn">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                                <rect x="2" y="9" width="4" height="12"/>
+                                <circle cx="4" cy="4" r="2"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
