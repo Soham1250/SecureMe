@@ -5,7 +5,7 @@
 const CONFIG = {
     // Development configuration
     development: {
-        APK_PATH: 'C:/Users/soham/Desktop/GRIND/Codes/Firm/SecureMe/SecureMe/Frontend/secureme/build/app/outputs/flutter-apk/app-release.apk', // Local development path
+        APK_PATH: './app-release.apk', // Local development path
         APK_FILENAME: 'SecureMe.apk',
         VERSION: '1.0.0',
         SIZE: '~15 MB',
